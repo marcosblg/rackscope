@@ -1,10 +1,14 @@
-# Rack Map — documentación visual de cableado en un solo archivo HTML
+# RackScope
 
-Herramienta para documentar **cómo está cableado un rack**: qué boca va a qué boca, con qué cable y con qué notas. Un único archivo `index.html`, sin servidor, sin instalación y sin dependencias: se abre con doble clic en cualquier navegador.
+**Documenta el cableado de tus racks en un solo archivo HTML.** Sin servidor, sin instalación y sin que salga un dato de tu equipo.
+
+Qué boca va a qué boca, con qué cable y con qué notas. Un único archivo `index.html` que se abre con doble clic en cualquier navegador.
 
 Nació de un problema muy concreto: con paneles de 24 y 48 bocas y un montón de latiguillos mezclados, saber a dónde va un cable concreto obliga a seguirlo con la vista o a tirar de él. Aquí se resuelve con un clic.
 
-![Vista general de Rack Map](docs/captura.jpg)
+![Demostración de RackScope](docs/demo.gif)
+
+> Pulsa **▶ Ver demo** dentro de la propia aplicación para ver esta visita guiada en tu navegador.
 
 ## Qué hace
 
@@ -39,9 +43,12 @@ Nació de un problema muy concreto: con paneles de 24 y 48 bocas y un montón de
 
 ## Cómo se usa
 
-1. Descarga `index.html` y ábrelo con doble clic.
-2. Viene con una sala de ejemplo para trastear. Cuando quieras empezar en serio: **＋** en el desplegable de salas → *en blanco*.
-3. Pulsa **💾 Archivo** y elige un `.json` tuyo: a partir de ahí la aplicación lo reescribe sola cada vez que cambias algo.
+1. Descarga `index.html` y ábrelo con doble clic. También puedes probarlo sin descargar nada desde la demo en línea.
+2. Pulsa **▶ Ver demo** para una visita guiada de 30 segundos por las funciones.
+3. Viene con una sala de ejemplo para trastear. Cuando quieras empezar en serio: **＋** en el desplegable de salas → *en blanco*.
+4. Pulsa **💾 Archivo** y elige un `.json` tuyo: a partir de ahí la aplicación lo reescribe sola cada vez que cambias algo.
+
+![Consulta de una boca](docs/captura.jpg)
 
 ## Dónde se guardan los datos
 

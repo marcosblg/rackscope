@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Rack Map — documentación de cableado</title>
+<title>RackScope — documentación de cableado de racks</title>
 <style>
 :root{
   --bg:#0e131c; --bg2:#131a26; --panel:#1a2233; --panel2:#212b40; --panel3:#28344d;
@@ -218,6 +218,14 @@ body.mv .port:active{cursor:grabbing}
 #warn span{white-space:normal}
 #warn button{background:#00000033;border:1px solid #ffffff55;color:#fff;padding:4px 9px;border-radius:6px;font-size:11.5px;font-weight:700}
 #toast .act{margin-left:10px;background:var(--acc);border:0;color:#fff;padding:3px 9px;border-radius:6px;font-size:11.5px;font-weight:700;pointer-events:auto}
+#cap{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);z-index:220;display:none;
+  align-items:center;gap:14px;max-width:min(1000px,92vw);padding:14px 22px;border-radius:14px;
+  background:linear-gradient(180deg,#0e131cf2,#0b0f17f2);border:2px solid var(--acc);
+  box-shadow:0 24px 70px -18px #000,0 0 0 1px #0006;font-size:18px;font-weight:650;color:#fff;line-height:1.35}
+#cap.on{display:flex}
+#cap b{color:var(--acc)}
+#cap button{background:#ffffff1a;border:1px solid #ffffff44;color:#fff;padding:6px 11px;border-radius:8px;font-size:12px;font-weight:700;flex:0 0 auto}
+#tour.on{background:var(--acc);border-color:var(--acc);color:#fff}
 #toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--panel);border:1.5px solid var(--acc);padding:10px 16px;border-radius:10px;font-size:13px;z-index:400;opacity:0;pointer-events:none;transition:.2s;box-shadow:var(--sh);font-weight:600}
 #toast.on{opacity:1;transform:translateX(-50%) translateY(-4px)}
 #legend{position:fixed;right:14px;bottom:14px;background:var(--panel);border:1px solid var(--line2);border-radius:10px;padding:10px 12px;font-size:11px;z-index:50;box-shadow:var(--sh)}
@@ -249,7 +257,7 @@ body.mv .port:active{cursor:grabbing}
 </head>
 <body>
 <div id="top">
-  <div class="brand"><i></i><div>Rack Map<small>documentación de cableado</small></div></div>
+  <div class="brand"><i></i><div>RackScope<small>documentación de cableado</small></div></div>
   <div class="sep"></div>
   <div class="roomwrap">
     <span class="lb">Sala</span>
@@ -269,6 +277,7 @@ body.mv .port:active{cursor:grabbing}
   <div class="zoomwrap"><button id="zo">−</button><span id="zl">100%</span><button id="zi">+</button><button id="zr" title="Ajustar a la ventana">⤢</button></div>
   <button class="btn" id="theme" title="Cambiar tema">🌙</button>
   <div class="sep"></div>
+  <button class="btn" id="tour" title="Demostración automática">▶ Ver demo</button>
   <button class="btn" id="mv" title="Colocar las bocas a mano">✥ Mover bocas</button>
   <div class="menuwrap">
     <button class="btn acc" id="expBtn">⭳ Exportar ▾</button>
@@ -319,6 +328,7 @@ body.mv .port:active{cursor:grabbing}
 
 <div id="veil"><div class="modal" id="modal"></div></div>
 <div id="warn"></div>
+<div id="cap"><span id="capT"></span><button id="capX">✕ salir</button></div>
 <div id="marq"></div>
 <div id="tip"></div>
 <div id="toast"></div>
@@ -1824,6 +1834,63 @@ $("#roomEdit").onclick=()=>{
     toastUndo('Sala "'+r.name+'" eliminada.',snap);
   };
 };
+
+/* ---------- demostración guiada ---------- */
+const TOUR=[
+ {t:"<b>RackScope</b> — documenta el cableado de un rack en un solo archivo HTML",
+  f:()=>{setMove(false);setCableMode("sel");setZoom(.72);stage.scrollTop=0;stage.scrollLeft=0;closePop();}},
+ {t:"Cada equipo, con su número real de bocas y su altura en U",
+  f:()=>{stage.scrollTop=0;closePop();}},
+ {t:"¿A dónde va este cable? <b>Un clic en la boca</b> y te lo dice",
+  f:()=>{const e=S.racks[0].elements[2];const n=portNode(e.id,48);n.scrollIntoView({block:'center'});n.click();}},
+ {t:"Te da el equipo, la boca exacta, el rack, el tipo de cable y tu nota",
+  f:()=>{}},
+ {t:"Las bocas ocupadas se pintan del color del cable: ves lo libre de un vistazo",
+  f:()=>{closePop();setCableMode("all");}},
+ {t:"Y los cables se ocultan cuando estorban, que en un rack real son decenas",
+  f:()=>{setCableMode("sel");}},
+ {t:"La <b>regla de U</b> dice qué ocupa cada equipo y cuánto te queda libre",
+  f:()=>{const el=racksEl.querySelector('.rack [data-free="1"]');
+     if(el){const d=el.getBoundingClientRect().top-stage.getBoundingClientRect().top;
+       stage.scrollLeft=0;stage.scrollTop+=d-300;}}},
+ {t:"26 U libres: ya sabes si te cabe el servidor nuevo sin bajar al CPD",
+  f:()=>{}},
+ {t:"Las bocas se colocan a mano para que el dibujo sea igual que tu rack",
+  f:()=>{stage.scrollTop=0;setMove(true);const e=S.racks[0].elements[0];sel.clear();[1,2,3,4].forEach(p=>sel.add(e.id+"|"+p));markSel();}},
+ {t:"Selección múltiple, alinear, repartir, juntar y ordenar por número",
+  f:()=>{const b=$('#mvbar [data-al="pack"]');if(b)b.click();}},
+ {t:"Y la documentación sale en <b>PNG, PDF, Excel o JSON</b>",
+  f:()=>{setMove(false);sel.clear();expMenu.classList.add("on");
+     const r=$("#expBtn").getBoundingClientRect();
+     expMenu.style.top=(r.bottom+6)+"px";expMenu.style.left=Math.max(8,Math.min(r.right-260,window.innerWidth-268))+"px";}},
+ {t:"Tema claro y oscuro, varias salas, y todo guardado en tu equipo",
+  f:()=>{expMenu.classList.remove("on");setTheme("light");}},
+ {t:"<b>RackScope</b> · gratis y con el código a la vista",
+  f:()=>{setTheme("dark");setZoom(.72);stage.scrollTop=0;closePop();}}
+];
+let tourI=-1,tourT=null;
+function tourStep(i){
+  tourI=i;
+  const st=TOUR[i];if(!st)return tourStop();
+  $("#capT").innerHTML=st.t;$("#cap").classList.add("on");
+  try{st.f();}catch(e){}
+}
+function tourPlay(){
+  $("#tour").classList.add("on");
+  const next=()=>{
+    if(tourI+1>=TOUR.length)return tourStop();
+    tourStep(tourI+1);
+    tourT=setTimeout(next,3000);
+  };
+  tourI=-1;next();
+}
+function tourStop(){
+  clearTimeout(tourT);tourT=null;tourI=-1;
+  $("#cap").classList.remove("on");$("#tour").classList.remove("on");
+  setMove(false);sel.clear();closePop();expMenu.classList.remove("on");render();
+}
+$("#tour").onclick=()=>{tourT?tourStop():tourPlay();};
+$("#capX").onclick=tourStop;
 
 $("#linkFile").onclick=()=>{
   if(fileHandle){
