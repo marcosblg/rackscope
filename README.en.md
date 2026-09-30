@@ -6,7 +6,9 @@
 
 Which port goes to which port, with what cable and what notes. One `index.html` you open by double-clicking it in any browser.
 
-It was born out of a very specific problem: with 24 and 48-port patch panels and a pile of tangled patch cords, finding where one cable ends means following it by eye or pulling on it and hoping. Here it takes one click.
+It was born out of a very specific problem: with several patch panels and a pile of tangled patch cords, finding where one cable ends means following it by eye or pulling on it and hoping. Here it takes one click.
+
+Every device is defined with the port count it actually has, from 1 to 96: 12, 16, 24, 32 or 48-port panels, switches with their SFP cages, servers with four NICs, or a recorder with a single port.
 
 ### 👉 [Try it right now in your browser](https://marcosblg.github.io/rackscope/)
 

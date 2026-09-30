@@ -6,7 +6,9 @@
 
 Qué boca va a qué boca, con qué cable y con qué notas. Un único archivo `index.html` que se abre con doble clic en cualquier navegador.
 
-Nació de un problema muy concreto: con paneles de 24 y 48 bocas y un montón de latiguillos mezclados, saber a dónde va un cable concreto obliga a seguirlo con la vista o a tirar de él. Aquí se resuelve con un clic.
+Nació de un problema muy concreto: con varios paneles de parcheo y un montón de latiguillos mezclados, saber a dónde va un cable concreto obliga a seguirlo con la vista o a tirar de él. Aquí se resuelve con un clic.
+
+Cada equipo se define con el número de bocas que tenga de verdad, de 1 a 96: paneles de 12, 16, 24, 32 o 48, switches con sus SFP, servidores con cuatro tarjetas o un grabador con una sola boca.
 
 ### 👉 [Pruébalo ahora en el navegador](https://marcosblg.github.io/rackscope/)
 
