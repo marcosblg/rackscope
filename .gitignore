@@ -1,0 +1,15 @@
+# datos propios: nunca deben subirse
+*.json
+!package.json
+rack-cableado-*.json
+cableado-*.csv
+rack-*.png
+rack-*.svg
+
+# temporales
+_*.py
+_check.js
+_backup.html
+Thumbs.db
+desktop.ini
+.DS_Store
