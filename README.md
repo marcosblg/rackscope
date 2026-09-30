@@ -1,3 +1,5 @@
+***Español** · [English](README.en.md)*
+
 # RackScope
 
 **Documenta el cableado de tus racks en un solo archivo HTML.** Sin servidor, sin instalación y sin que salga un dato de tu equipo.
