@@ -8,6 +8,10 @@ Qué boca va a qué boca, con qué cable y con qué notas. Un único archivo `in
 
 Nació de un problema muy concreto: con paneles de 24 y 48 bocas y un montón de latiguillos mezclados, saber a dónde va un cable concreto obliga a seguirlo con la vista o a tirar de él. Aquí se resuelve con un clic.
 
+### 👉 [Pruébalo ahora en el navegador](https://marcosblg.github.io/rackscope/)
+
+No hay que instalar ni descargar nada: el enlace abre la herramienta con una sala de ejemplo. Pulsa **▶ Ver demo** para la visita guiada.
+
 ![Demostración de RackScope](docs/demo.gif)
 
 🎬 **[Ver el vídeo de demostración (30 s)](docs/demo.mp4)** · o pulsa **▶ Ver demo** dentro de la propia aplicación para recorrerla tú mismo.

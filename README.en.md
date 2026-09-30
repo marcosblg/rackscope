@@ -8,6 +8,10 @@ Which port goes to which port, with what cable and what notes. One `index.html` 
 
 It was born out of a very specific problem: with 24 and 48-port patch panels and a pile of tangled patch cords, finding where one cable ends means following it by eye or pulling on it and hoping. Here it takes one click.
 
+### 👉 [Try it right now in your browser](https://marcosblg.github.io/rackscope/)
+
+Nothing to install or download: the link opens the tool with a sample room. Hit **▶ Ver demo** for the guided tour.
+
 ![RackScope demo](docs/demo.gif)
 
 🎬 **[Watch the demo video (30 s)](docs/demo.mp4)** · or hit **▶ Ver demo** inside the app to walk through it yourself.
