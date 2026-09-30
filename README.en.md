@@ -10,7 +10,7 @@ It was born out of a very specific problem: with 24 and 48-port patch panels and
 
 ![RackScope demo](docs/demo.gif)
 
-> Hit **▶ Ver demo** inside the app for this guided tour in your own browser.
+🎬 **[Watch the demo video (30 s)](docs/demo.mp4)** · or hit **▶ Ver demo** inside the app to walk through it yourself.
 
 ## What it does
 

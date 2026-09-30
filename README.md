@@ -10,7 +10,7 @@ Nació de un problema muy concreto: con paneles de 24 y 48 bocas y un montón de
 
 ![Demostración de RackScope](docs/demo.gif)
 
-> Pulsa **▶ Ver demo** dentro de la propia aplicación para ver esta visita guiada en tu navegador.
+🎬 **[Ver el vídeo de demostración (30 s)](docs/demo.mp4)** · o pulsa **▶ Ver demo** dentro de la propia aplicación para recorrerla tú mismo.
 
 ## Qué hace
 
