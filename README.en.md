@@ -12,7 +12,7 @@ Every device is defined with the port count it actually has, from 1 to 96: 12, 1
 
 ### 👉 [Try it right now in your browser](https://marcosblg.github.io/rackscope/)
 
-> 🆕 **v1.1** (October 2, 2026): the port window can now be dragged and shrinks while connecting, so it never covers the destination port. [See the full changelog](CHANGELOG.md#whats-new-in-rackscope)
+> 🆕 **v1.2** (October 2, 2026): security update. Imported files are thoroughly validated and the page blocks every connection to the Internet. [See the full changelog](CHANGELOG.md#whats-new-in-rackscope)
 
 Nothing to install or download: the link opens the tool with a sample room. Hit **▶ Ver demo** for the guided tour.
 

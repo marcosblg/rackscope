@@ -2,6 +2,14 @@
 
 # Novedades de RackScope
 
+## v1.2 — 2 de octubre de 2026
+
+Actualización de seguridad. Se recomienda a todo el mundo.
+
+- Los archivos JSON que importas o abres se revisan a fondo antes de usarlos: números, opciones, identificadores y cables a bocas que no existen. Un archivo manipulado ya no puede ejecutar nada en la página.
+- La página tiene bloqueada cualquier conexión a Internet (política de seguridad del navegador): que tus datos no salen de tu equipo ya no es solo una promesa, lo garantiza el navegador.
+- Al exportar a Excel (CSV), los textos que empiezan por `=`, `+`, `-` o `@` ya no se interpretan como fórmulas.
+
 ## v1.1 — 2 de octubre de 2026
 
 - La ventana de la boca se arrastra por su cabecera y se queda donde la dejas. *(Sugerencia de la comunidad: gracias.)*
@@ -21,6 +29,14 @@ Primera versión pública.
 ---
 
 # What's new in RackScope
+
+## v1.2 — October 2, 2026
+
+Security update. Recommended for everyone.
+
+- JSON files you import or open are thoroughly validated before use: numbers, options, identifiers and cables pointing to ports that do not exist. A tampered file can no longer run anything on the page.
+- The page blocks every connection to the Internet (browser security policy): your data staying on your machine is no longer just a promise, the browser enforces it.
+- When exporting to Excel (CSV), text starting with `=`, `+`, `-` or `@` is no longer treated as a formula.
 
 ## v1.1 — October 2, 2026
 

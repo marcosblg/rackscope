@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; media-src data: blob:; connect-src 'none'; font-src 'none'; frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <title>RackScope — documentación de cableado de racks</title>
 <style>
 :root{
@@ -431,7 +432,7 @@ function load(){
     if(raw){
       const d=JSON.parse(raw);
       if(d&&Array.isArray(d.rooms)&&d.rooms.length){          // formato nuevo
-        d.rooms.forEach(r=>{r.id=r.id||nid("s");r.state=migrate(r.state||seed());});
+        d.rooms.forEach(r=>{r.id=safeId(r.id,"s");r.name=str(r.name)||"Sala";r.state=migrate(r.state||seed());});
         if(!d.rooms.some(r=>r.id===d.current))d.current=d.rooms[0].id;
         d.theme=d.theme||"dark";d.cableMode=d.cableMode||"sel";
         return d;
@@ -454,8 +455,18 @@ function useRoom(id){
   sel.clear();closePop();hideTip();
   fillRooms();setZoom(S.zoom||1);render();layout();
 }
+// todo lo que llega de un JSON (importado, vinculado o guardado) se valida antes de usarlo:
+// numeros como numeros, opciones solo de la lista permitida e ids sin caracteres raros
+const safeId=(x,p)=>typeof x==="string"&&/^[\w-]{1,64}$/.test(x)?x:nid(p);
+const str=x=>x==null?"":String(x);
+const has=(o,k)=>typeof k==="string"&&Object.prototype.hasOwnProperty.call(o,k);
+const int=(x,lo,hi,def)=>{const n=Math.round(+x);return Number.isFinite(n)?Math.max(lo,Math.min(hi,n)):def;};
+const pick=(x,list,def)=>list.includes(x)?x:def;
+const objs=x=>Array.isArray(x)?x.filter(o=>o&&typeof o==="object"&&!Array.isArray(o)):[];
 function migrate(d){
-  d.links=d.links||[];d.racks=d.racks||[];
+  d=d&&typeof d==="object"&&!Array.isArray(d)?d:{};
+  d.links=objs(d.links);d.racks=objs(d.racks);
+  d.racks.forEach(r=>{r.elements=objs(r.elements);r.elements.forEach(e=>e.ports=int(e.ports,1,200,1));});
   d.theme=d.theme||"dark"; d.cableMode=d.cableMode||"sel";
   d.racks.forEach(r=>{
     if(r.u==null)r.u=42;
@@ -470,6 +481,33 @@ function migrate(d){
     if(!e.flow)e.flow=(e.rows||1)>1?"col":"row"; if(e.group==null)e.group=0;
     if(e.pmode==="free"&&!Array.isArray(e.pos))e.pos=defaultPos(e);
   }));
+  d.zoom=Math.max(.35,Math.min(1.6,+d.zoom||1));
+  d.theme=d.theme==="light"?"light":"dark";
+  d.cableMode=pick(d.cableMode,["none","sel","all"],"sel");
+  const emap=Object.create(null),nports=Object.create(null);
+  d.racks.forEach(r=>{
+    r.id=safeId(r.id,"r");r.name=str(r.name)||"RACK";r.u=int(r.u,1,60,42);r.ubot=!!r.ubot;
+    r.elements.forEach(e=>{
+      const old=e.id;e.id=safeId(e.id,"e");if(typeof old==="string")emap[old]=e.id;emap[e.id]=e.id;
+      e.name=str(e.name);e.sub=str(e.sub);e.type=has(TYPES,e.type)?e.type:"otro";
+      e.rows=int(e.rows,1,4,1);e.u=int(e.u,1,20,1);e.h=0;
+      e.span=pick(+e.span,[3,4,5,6,8,12],12);e.pmode=pick(e.pmode,["grid","free"],"grid");
+      e.palign=pick(e.palign,["left","center","right"],"left");e.flow=pick(e.flow,["row","col"],"row");
+      e.group=int(e.group,0,24,0);
+      if(Array.isArray(e.pos)){
+        e.pos=e.pos.map(q=>({x:Math.max(0,Math.min(100,+(q&&q.x)||50)),y:Math.max(0,Math.min(100,+(q&&q.y)||50))}));
+        if(e.pos.length<e.ports){const ex=defaultPos(e);while(e.pos.length<e.ports)e.pos.push(ex[e.pos.length]);}
+      }else e.pos=e.pmode==="free"?defaultPos(e):null;
+      nports[e.id]=e.ports;
+    });
+  });
+  d.links=d.links.filter(l=>{                      // los cables a equipos o bocas que no existen se descartan
+    const end=x=>x&&typeof x==="object"&&typeof x.el==="string"&&emap[x.el]?{el:emap[x.el],port:int(x.port,1,200,0)}:null;
+    const a=end(l.a),b=end(l.b);
+    if(!a||!b||!a.port||!b.port||a.port>nports[a.el]||b.port>nports[b.el])return false;
+    l.id=safeId(l.id,"l");l.a=a;l.b=b;l.cable=has(CABLES,l.cable)?l.cable:"otro";l.label=str(l.label);l.note=str(l.note);
+    return true;
+  });
   return d;
 }
 function defaultPos(e){const n=e.ports,c=Math.min(n,Math.ceil(Math.sqrt(n)*1.4)),rw=Math.ceil(n/c),r=[];
@@ -532,7 +570,7 @@ async function openFile(){
     const txt=await (await h.getFile()).text();
     const d=JSON.parse(txt);
     if(!d||!Array.isArray(d.rooms))throw 0;
-    d.rooms.forEach(r=>{r.id=r.id||nid("s");r.state=migrate(r.state||seed());});
+    d.rooms.forEach(r=>{r.id=safeId(r.id,"s");r.name=str(r.name)||"Sala";r.state=migrate(r.state||seed());});
     DB={v:2,current:d.rooms.some(r=>r.id===d.current)?d.current:d.rooms[0].id,
         theme:d.theme||"dark",cableMode:d.cableMode||"sel",rooms:d.rooms};
     fileHandle=h;fileName=h.name;
@@ -549,7 +587,7 @@ async function restoreHandle(){
       try{
         const txt=await (await h.getFile()).text();const d=JSON.parse(txt);
         if(d&&Array.isArray(d.rooms)&&d.rooms.length){
-          d.rooms.forEach(r=>{r.id=r.id||nid("s");r.state=migrate(r.state||seed());});
+          d.rooms.forEach(r=>{r.id=safeId(r.id,"s");r.name=str(r.name)||"Sala";r.state=migrate(r.state||seed());});
           DB={v:2,current:d.rooms.some(r=>r.id===d.current)?d.current:d.rooms[0].id,
               theme:d.theme||"dark",cableMode:d.cableMode||"sel",rooms:d.rooms};
           useRoom(DB.current);
@@ -689,7 +727,7 @@ function elNode(e,i,r){
   const cols=Math.ceil(e.ports/(e.rows||1));
   d.innerHTML=`<div class="el-head">
       <span class="el-name">${esc(e.name)}</span>
-      <span class="badge">${TYPES[e.type]||e.type}</span>
+      <span class="badge">${esc(TYPES[e.type]||e.type)}</span>
       <span class="ubadge" title="Altura en U">${e.u||1}U</span>
       <span class="el-sub">${esc(e.sub)}</span>
       <span class="el-tools">
@@ -1504,7 +1542,7 @@ function rows(){
 }
 function expCSV(){
   const head=["Sala","Rack origen","Equipo origen","Boca","Rack destino","Equipo destino","Boca","Tipo de cable","Etiqueta","Nota"];
-  const q=v=>'"'+String(v).replace(/"/g,'""')+'"';
+  const q=v=>{let t=String(v);if(/^[=+\-@\t\r]/.test(t))t="'"+t;return '"'+t.replace(/"/g,'""')+'"';};   // evita formulas al abrirlo en Excel
   const txt="﻿"+[head,...rows()].map(r=>r.map(q).join(";")).join("\r\n");
   deliver(new Blob([txt],{type:"text/csv;charset=utf-8"}),"cableado-"+scopeName()+"-"+stamp()+".csv","txt",txt);
 }
@@ -1719,12 +1757,12 @@ function importText(f){
         "Empieza por: "+(txt.slice(0,60)||"(vacío)")+"\n\nError: "+err.message);
     }
     let rooms=null;
-    if(d&&Array.isArray(d.rooms)&&d.rooms.length)rooms=d.rooms;                       // copia completa
-    else if(Array.isArray(d)&&d.length&&d[0]&&d[0].state)rooms=d;                     // lista de salas
+    if(d&&Array.isArray(d.rooms)&&d.rooms.length)rooms=objs(d.rooms);                       // copia completa
+    else if(Array.isArray(d)&&d.length&&d[0]&&d[0].state)rooms=objs(d);                     // lista de salas
     else if(d&&d.racks)rooms=[{id:nid("s"),name:f.name.replace(/\.[a-z]+$/i,"")||"Sala importada",state:d}];  // formato antiguo
     else if(d&&d.state&&d.state.racks)rooms=[d];                                      // una sala suelta
-    if(!rooms)return importError("El archivo “"+f.name+"” es un JSON, pero no tiene el formato de esta aplicación (no encuentro ni salas ni racks).");
-    rooms.forEach(r=>{r.id=r.id||nid("s");r.name=r.name||"Sala";r.state=migrate(r.state||seed());});
+    if(!rooms||!rooms.length)return importError("El archivo “"+f.name+"” es un JSON, pero no tiene el formato de esta aplicación (no encuentro ni salas ni racks).");
+    rooms.forEach(r=>{r.id=safeId(r.id,"s");r.name=str(r.name)||"Sala";r.name=r.name||"Sala";r.state=migrate(r.state||seed());});
     importDialog(f.name,rooms,d);
   };
   rd.readAsText(f);
@@ -1958,8 +1996,12 @@ addEventListener("beforeunload",ev=>{
 });
 
 /* ---------- versión y novedades ---------- */
-const VERSION="1.1";
+const VERSION="1.2";
 const NEWS=[
+ {v:"1.2",d:"2 de octubre de 2026",items:[
+   "Seguridad: los archivos JSON que importas o abres se revisan a fondo antes de usarlos. Un archivo manipulado ya no puede ejecutar nada en la página.",
+   "La página tiene bloqueada cualquier conexión a Internet: que tus datos no salen de tu equipo ahora lo garantiza el propio navegador.",
+   "Al exportar a Excel (CSV), los textos que empiezan por = + - o @ ya no se interpretan como fórmulas."]},
  {v:"1.1",d:"2 de octubre de 2026",items:[
    "La ventana de la boca se arrastra por su cabecera y se queda donde la dejas.",
    "Al pulsar «Conectar esta boca…» la ventana se reduce, para que no tape la boca de destino.",
