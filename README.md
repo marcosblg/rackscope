@@ -12,6 +12,8 @@ Cada equipo se define con el número de bocas que tenga de verdad, de 1 a 96: pa
 
 ### 👉 [Pruébalo ahora en el navegador](https://marcosblg.github.io/rackscope/)
 
+> 🆕 **v1.1** (2 de octubre de 2026): la ventana de la boca se arrastra y se reduce al conectar, para que no tape la boca de destino. [Ver todas las novedades](CHANGELOG.md)
+
 No hay que instalar ni descargar nada: el enlace abre la herramienta con una sala de ejemplo. Pulsa **▶ Ver demo** para la visita guiada.
 
 ![Demostración de RackScope](docs/demo.gif)

@@ -230,6 +230,17 @@ body.mv .port:active{cursor:grabbing}
 #cap b{color:var(--acc)}
 #cap button{background:#ffffff1a;border:1px solid #ffffff44;color:#fff;padding:6px 11px;border-radius:8px;font-size:12px;font-weight:700;flex:0 0 auto}
 #tour.on{background:var(--acc);border-color:var(--acc);color:#fff}
+#ver{background:none;border:0;padding:0;margin-left:5px;font:inherit;color:var(--acc);cursor:pointer}
+#ver:hover{text-decoration:underline}
+#news{position:fixed;right:14px;top:66px;z-index:250;width:320px;background:var(--panel);border:2px solid var(--acc);border-radius:12px;box-shadow:var(--sh);padding:12px 14px;font-size:12.5px;line-height:1.5;display:none}
+#news.on{display:block;animation:pin .15s ease-out}
+#news b{color:var(--acc)}
+#news ul{margin:6px 0 10px;padding-left:18px;color:var(--tx2)}
+#news .row{display:flex;gap:6px;justify-content:flex-end}
+.nv h4{margin:14px 0 4px;font-size:13px}
+.nv h4:first-child{margin-top:0}
+.nv h4 span{font-weight:400;color:var(--tx3);font-size:11.5px;margin-left:6px}
+.nv ul{margin:0;padding-left:18px;font-size:12.5px;line-height:1.6;color:var(--tx2)}
 #toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--panel);border:1.5px solid var(--acc);padding:10px 16px;border-radius:10px;font-size:13px;z-index:400;opacity:0;pointer-events:none;transition:.2s;box-shadow:var(--sh);font-weight:600}
 #toast.on{opacity:1;transform:translateX(-50%) translateY(-4px)}
 #legend{position:fixed;right:14px;bottom:14px;background:var(--panel);border:1px solid var(--line2);border-radius:10px;padding:10px 12px;font-size:11px;z-index:50;box-shadow:var(--sh)}
@@ -261,7 +272,7 @@ body.mv .port:active{cursor:grabbing}
 </head>
 <body>
 <div id="top">
-  <div class="brand"><i></i><div>RackScope<small>documentación de cableado</small></div></div>
+  <div class="brand"><i></i><div>RackScope<small>documentación de cableado ·<button id="ver" title="Ver novedades"></button></small></div></div>
   <div class="sep"></div>
   <div class="roomwrap">
     <span class="lb">Sala</span>
@@ -336,6 +347,7 @@ body.mv .port:active{cursor:grabbing}
 <div id="marq"></div>
 <div id="tip"></div>
 <div id="toast"></div>
+<div id="news"></div>
 <div id="print"></div>
 <div id="legend"></div>
 
@@ -1945,6 +1957,40 @@ addEventListener("beforeunload",ev=>{
   if(!lsOK&&!fileHandle){ev.preventDefault();ev.returnValue="";}
 });
 
+/* ---------- versión y novedades ---------- */
+const VERSION="1.1";
+const NEWS=[
+ {v:"1.1",d:"2 de octubre de 2026",items:[
+   "La ventana de la boca se arrastra por su cabecera y se queda donde la dejas.",
+   "Al pulsar «Conectar esta boca…» la ventana se reduce, para que no tape la boca de destino.",
+   "El número de versión aparece junto al nombre: púlsalo para ver las novedades."]},
+ {v:"1.0",d:"30 de septiembre de 2026",items:[
+   "Primera versión pública: salas, racks, equipos con su número real de bocas, cables con tipo, etiqueta y nota.",
+   "Regla de U con el espacio libre, colocación de bocas a mano y demo guiada.",
+   "Exportación a PNG, SVG, PDF, CSV y JSON, y guardado en archivo vinculado."]}
+];
+function showNews(){
+  modal.innerHTML=`<h3>Novedades de RackScope</h3><div class="body nv">${NEWS.map(n=>
+    `<div><h4>v${n.v}<span>${n.d}</span></h4><ul>${n.items.map(i=>`<li>${esc(i)}</li>`).join("")}</ul></div>`).join("")}</div>
+    <div class="foot"><button class="btn acc" id="m_ok">Cerrar</button></div>`;
+  veil.classList.add("on");$("#m_ok").onclick=closeModal;
+}
+$("#ver").textContent=" v"+VERSION;
+$("#ver").onclick=showNews;
+// a quien ya la usaba se le avisa una vez de lo nuevo; a quien entra por primera vez, no
+function checkNews(hadData){
+  let seen=null;
+  try{seen=localStorage.getItem(KEY+".version");localStorage.setItem(KEY+".version",VERSION);}catch(e){return;}
+  if(seen===VERSION||(!seen&&!hadData))return;
+  const n=NEWS[0],box=$("#news");
+  box.innerHTML=`<b>Novedades de la v${n.v}</b><ul>${n.items.map(i=>`<li>${esc(i)}</li>`).join("")}</ul>
+    <div class="row"><button class="btn sm" id="newsAll">Ver todas</button><button class="btn sm acc" id="newsOk">Entendido</button></div>`;
+  box.classList.add("on");
+  $("#newsOk").onclick=()=>box.classList.remove("on");
+  $("#newsAll").onclick=()=>{box.classList.remove("on");showNews();};
+}
+let hadData=false;try{hadData=!!localStorage.getItem(KEY);}catch(e){}
+
 DB=load();
 S=room().state;
 setScope(DB.expScope==="all"?"all":"room");S.theme=DB.theme;S.cableMode=DB.cableMode;
@@ -1957,6 +2003,7 @@ render();
 try{localStorage.setItem(KEY+".test","1");localStorage.removeItem(KEY+".test");}catch(e){lsOK=false;}
 updateSaveUI();
 restoreHandle();
+checkNews(hadData);
 </script>
 </body>
 </html>
