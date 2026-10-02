@@ -175,7 +175,11 @@ body.mv .port:active{cursor:grabbing}
 #pop{position:fixed;z-index:200;width:340px;background:var(--panel);border:2px solid var(--acc);border-radius:12px;box-shadow:var(--sh);display:none;overflow:hidden}
 #pop.on{display:block;animation:pin .12s ease-out}
 @keyframes pin{from{opacity:0;transform:translateY(-6px)}}
-#pop .ph{padding:10px 12px;background:var(--panel2);border-bottom:1px solid var(--line2);display:flex;align-items:center;gap:8px}
+#pop .ph{padding:10px 12px;background:var(--panel2);border-bottom:1px solid var(--line2);display:flex;align-items:center;gap:8px;cursor:move;user-select:none;touch-action:none}
+#pop .ph .grip{color:var(--tx3);font-size:12px;letter-spacing:-2px}
+#pop.mini .pb,#pop.mini #popLink{display:none}
+#pop .wait{display:none;font-size:11.5px;color:var(--tx2);align-self:center;flex:1}
+#pop.mini .wait{display:block}
 #pop .ph .t{font-size:13px;font-weight:700}
 #pop .ph .p{font-family:var(--m);font-size:11px;background:var(--accbg);color:var(--acc);padding:3px 8px;border-radius:5px;border:1px solid var(--accbd);font-weight:700}
 #pop .ph .x{margin-left:auto;background:none;border:0;color:var(--tx3);font-size:16px;line-height:1}
@@ -321,9 +325,9 @@ body.mv .port:active{cursor:grabbing}
 </div></div>
 
 <div id="pop">
-  <div class="ph"><span class="t" id="popT"></span><span class="p" id="popP"></span><button class="x" id="popX">✕</button></div>
+  <div class="ph" title="Arrastra para mover la ventana"><span class="grip">⋮⋮</span><span class="t" id="popT"></span><span class="p" id="popP"></span><button class="x" id="popX">✕</button></div>
   <div class="pb" id="popB"></div>
-  <div class="pf"><button class="btn acc sm" id="popLink">Conectar esta boca…</button><button class="btn sm" id="popCancel" style="display:none">Cancelar</button></div>
+  <div class="pf"><button class="btn acc sm" id="popLink">Conectar esta boca…</button><span class="wait">Pulsa la boca de destino. Si esta ventana la tapa, arrástrala.</span><button class="btn sm" id="popCancel" style="display:none">Cancelar</button></div>
 </div>
 
 <div id="veil"><div class="modal" id="modal"></div></div>
@@ -550,6 +554,7 @@ async function restoreHandle(){
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const racksEl=$("#racks"), svg=$("#cables"), inner=$("#inner"), stage=$("#stage");
 let pending=null;      // {el,port} boca origen al conectar
+function setPending(v){pending=v;$("#popCancel").style.display=v?"":"none";$("#pop").classList.toggle("mini",!!v);}
 let openPort=null;     // boca con popover abierto
 let openNode=null;     // nodo DOM de esa boca
 
@@ -790,8 +795,9 @@ function hideTip(){tip.classList.remove("on");}
 
 /* ---------- popover ---------- */
 const pop=$("#pop");
+let popMoved=false,popDrag=null;
 function placePop(){
-  if(!openNode||!pop.classList.contains("on"))return;
+  if(!openNode||!pop.classList.contains("on")||popMoved)return;
   const r=openNode.getBoundingClientRect();
   let x=r.right+12,y=r.top-8;
   if(x+340>window.innerWidth)x=r.left-342;
@@ -799,7 +805,7 @@ function placePop(){
   y=Math.max(58,Math.min(y,window.innerHeight-Math.min(pop.offsetHeight,420)-12));
   pop.style.left=x+"px";pop.style.top=y+"px";
 }
-function closePop(){pop.classList.remove("on");openNode=null;$$(".port.sel").forEach(p=>p.classList.remove("sel"));openPort=null;hideTip();draw();}
+function closePop(){pop.classList.remove("on");popMoved=false;openNode=null;$$(".port.sel").forEach(p=>p.classList.remove("sel"));openPort=null;hideTip();draw();}
 function showPop(elId,port,node){
   const e=elById(elId);if(!e)return;
   $$(".port.sel").forEach(p=>p.classList.remove("sel"));
@@ -844,9 +850,9 @@ racksEl.addEventListener("click",ev=>{
   if(moveMode||skipClick)return;
   const elId=p.dataset.el,port=+p.dataset.port;
   if(pending){
-    if(pending.el===elId&&pending.port===port){pending=null;$("#popCancel").style.display="none";toast("Conexión cancelada");closePop();return;}
+    if(pending.el===elId&&pending.port===port){setPending(null);toast("Conexión cancelada");closePop();return;}
     const l={id:nid("l"),a:{...pending},b:{el:elId,port},cable:"cat6",label:"",note:""};
-    pending=null;$("#popCancel").style.display="none";
+    setPending(null);
     S.links.push(l);save();render();editLink(l.id,true);
     return;
   }
@@ -864,12 +870,25 @@ racksEl.addEventListener("mouseout",ev=>{
   hideTip();
   if(!openPort){hoverPort=null;draw();}
 });
-$("#popX").onclick=()=>{pending=null;$("#popCancel").style.display="none";closePop();};
-$("#popCancel").onclick=()=>{pending=null;$("#popCancel").style.display="none";toast("Conexión cancelada");};
+pop.querySelector(".ph").addEventListener("pointerdown",ev=>{
+  if(ev.button!==0||ev.target.closest("button"))return;
+  ev.preventDefault();
+  const r=pop.getBoundingClientRect();
+  popDrag={dx:ev.clientX-r.left,dy:ev.clientY-r.top};
+  pop.querySelector(".ph").setPointerCapture(ev.pointerId);
+});
+pop.querySelector(".ph").addEventListener("pointermove",ev=>{
+  if(!popDrag)return;
+  const x=Math.max(4-pop.offsetWidth+80,Math.min(innerWidth-80,ev.clientX-popDrag.dx));
+  const y=Math.max(4,Math.min(innerHeight-40,ev.clientY-popDrag.dy));
+  pop.style.left=x+"px";pop.style.top=y+"px";popMoved=true;
+});
+pop.querySelector(".ph").addEventListener("pointerup",()=>{popDrag=null;});
+$("#popX").onclick=()=>{setPending(null);closePop();};
+$("#popCancel").onclick=()=>{setPending(null);toast("Conexión cancelada");};
 $("#popLink").onclick=()=>{
   if(!openPort)return;
-  pending={...openPort};
-  $("#popCancel").style.display="";
+  setPending({...openPort});
   toast("Ahora pulsa la boca de destino");
 };
 $("#popB").addEventListener("click",ev=>{
@@ -886,7 +905,7 @@ document.addEventListener("click",ev=>{
   if(pop.contains(ev.target)||ev.target.closest(".port")||ev.target.closest("#top"))return;
   if(!pending)closePop();
 });
-document.addEventListener("keydown",ev=>{if(ev.key==="Escape"){pending=null;$("#popCancel").style.display="none";closePop();closeModal();}});
+document.addEventListener("keydown",ev=>{if(ev.key==="Escape"){setPending(null);closePop();closeModal();}});
 
 function handleAct(btn){
   const act=btn.dataset.act;
@@ -1091,7 +1110,7 @@ function setMove(on){
   moveMode=on;document.body.classList.toggle("mv",on);
   $("#mv").classList.toggle("on",on);
   if(!on){sel.clear();setAdd(false);}
-  if(on){closePop();pending=null;$("#popCancel").style.display="none";}
+  if(on){closePop();setPending(null);}
   render();layout();
 }
 function selCount(){const n=$("#selcnt");if(n)n.textContent=sel.size+" sel.";}

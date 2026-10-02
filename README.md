@@ -25,6 +25,7 @@ No hay que instalar ni descargar nada: el enlace abre la herramienta con una sal
 - Cada conexión lleva tipo de cable (Cat5e, Cat6, Cat6a/7, fibra multimodo, fibra monomodo, DAC/Twinax, eléctrico), etiqueta corta y una nota libre.
 - **Clic en cualquier boca y te dice al instante a dónde va**: equipo, número de boca exacto, rack, tipo de cable y la nota. Sin seguir el cable con la vista.
 - Al pasar el ratón por encima ya sale un aviso rápido con el destino.
+- La ventana de la boca se arrastra por su cabecera: al conectar se reduce y, si tapa la boca de destino, la apartas.
 - Las bocas ocupadas se pintan del color del tipo de cable, así ves de un vistazo qué está libre.
 - Los cables se pueden ocultar, ver solo el de la boca elegida o verlos todos, para que la pantalla no se convierta en una maraña.
 

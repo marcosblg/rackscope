@@ -25,6 +25,7 @@ Nothing to install or download: the link opens the tool with a sample room. Hit 
 - Every connection carries a cable type (Cat5e, Cat6, Cat6a/7, multimode fiber, single-mode fiber, DAC/Twinax, power), a short label and a free-form note.
 - **Click any port and it tells you instantly where it goes**: device, exact port number, rack, cable type and your note. No tracing cables by eye.
 - Hovering already pops up a quick hint with the destination.
+- The port window can be dragged by its header: while connecting it shrinks, and if it covers the destination port you just move it aside.
 - Used ports are painted in their cable's color, so free capacity is obvious at a glance.
 - Cables can be hidden, shown only for the selected port, or all at once — so the screen never turns into spaghetti.
 
