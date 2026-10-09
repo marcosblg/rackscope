@@ -10,6 +10,8 @@ Nació de un problema muy concreto: con varios paneles de parcheo y un montón d
 
 Cada equipo se define con el número de bocas que tenga de verdad, de 1 a 96: paneles de 12, 16, 24, 32 o 48, switches con sus SFP, servidores con cuatro tarjetas o un grabador con una sola boca.
 
+Tiene una herramienta hermana, **[SubnetScope](https://github.com/marcosblg/subnetscope)**, para planificar las IPs y VLANs de la red: le pasas los equipos que documentes aquí, les das IP allí y luego devuelves esas IPs a RackScope. [Pruébala](https://marcosblg.github.io/subnetscope/).
+
 ### 👉 [Pruébalo ahora en el navegador](https://marcosblg.github.io/rackscope/)
 
 > 🆕 **v2.0** (9 de octubre de 2026): cables entre salas, trabajo en equipo (carpeta de red o servidor Apache), bocas SFP con su propia numeración, tipos de equipo propios y copiar racks. Todo pedido por vosotros en las *issues*. [Ver todas las novedades](CHANGELOG.md)

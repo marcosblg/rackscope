@@ -10,6 +10,8 @@ It was born out of a very specific problem: with several patch panels and a pile
 
 Every device is defined with the port count it actually has, from 1 to 96: 12, 16, 24, 32 or 48-port panels, switches with their SFP cages, servers with four NICs, or a recorder with a single port.
 
+It has a sister tool, **[SubnetScope](https://github.com/marcosblg/subnetscope)**, to plan the network's IPs and VLANs: send it the devices you document here, assign their IPs there and then bring those IPs back into RackScope. [Try it](https://marcosblg.github.io/subnetscope/).
+
 ### 👉 [Try it right now in your browser](https://marcosblg.github.io/rackscope/)
 
 > 🆕 **v2.0** (October 9, 2026): cables between rooms, teamwork (shared network folder or Apache server), SFP ports with their own numbering, custom device types and rack copying. All requested by you in the issues. [See the full changelog](CHANGELOG.md#whats-new-in-rackscope)
