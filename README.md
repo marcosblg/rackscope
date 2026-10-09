@@ -12,7 +12,7 @@ Cada equipo se define con el número de bocas que tenga de verdad, de 1 a 96: pa
 
 ### 👉 [Pruébalo ahora en el navegador](https://marcosblg.github.io/rackscope/)
 
-> 🆕 **v1.2** (2 de octubre de 2026): actualización de seguridad. Los archivos que importas se revisan a fondo y la página tiene bloqueada cualquier conexión a Internet. [Ver todas las novedades](CHANGELOG.md)
+> 🆕 **v2.0** (9 de octubre de 2026): cables entre salas, trabajo en equipo (carpeta de red o servidor Apache), bocas SFP con su propia numeración, tipos de equipo propios y copiar racks. Todo pedido por vosotros en las *issues*. [Ver todas las novedades](CHANGELOG.md)
 
 No hay que instalar ni descargar nada: el enlace abre la herramienta con una sala de ejemplo. Pulsa **▶ Ver demo** para la visita guiada.
 
@@ -33,17 +33,25 @@ No hay que instalar ni descargar nada: el enlace abre la herramienta con una sal
 
 **Dibujar el rack como es en realidad**
 - Cada equipo con su número real de bocas, en tira, en rejilla o colocadas **a mano** donde te dé la gana.
-- Numeración horizontal (1…24) o vertical (1-2 / 3-4, como los switches reales), con separación por bloques.
+- Numeración horizontal (1…24) o vertical (1-2 / 3-4, como los switches reales), con separación por bloques y opción de impares abajo y pares arriba.
+- **Bocas SFP aparte** con su propia numeración (S1, S2…), a la derecha o a la izquierda del bloque normal.
+- **Tipos de equipo propios** (router, centralita, KVM…) con su nombre y su color.
 - Cajas de ancho y alto variable: barras de 1U, servidores de 2U, cabinas cuadradas, varias cajas en la misma fila.
 - Herramientas para cuadrar bocas: selección múltiple con Ctrl/Shift, selección por recuadro, mover en grupo, alinear, repartir, juntar, ordenar por número y ajuste fino con las flechas.
 
 **Saber qué te cabe**
 - Regla de U a la izquierda de cada rack, con el rango que ocupa cada equipo.
 - Las U libres se dibujan y se cuentan: *"18 / 42 U · quedan 24 U libres"*.
-- Elementos de tipo **hueco libre** para reservar espacio donde de verdad está.
+- Elementos de tipo **hueco libre** para reservar espacio donde de verdad está; cuentan como U libres.
+- **＋ rack** crea uno vacío o **copia cualquier rack existente**, de esta sala o de otra, con sus cables internos.
 
 **Varias salas**
-- Desplegable de salas: cada una con sus racks, equipos y cables, independientes.
+- Desplegable de salas: cada una con sus racks, equipos y cables.
+- **Cables entre salas**: pulsa *Conectar esta boca…*, cambia de sala en el desplegable y elige el destino. La boca lleva la marca ↗ y desde su ficha saltas a la otra sala.
+
+**Trabajar en equipo**
+- Si varias personas usan el mismo `.json` en una **carpeta de red**, cada una ve los cambios de las demás en unos segundos y, si dos guardan a la vez, la aplicación avisa en vez de pisar nada.
+- **Modo servidor** opcional para Apache con PHP: copias `index.html` y `rackscope.php` en el servidor y todo el equipo trabaja sobre el mismo plano desde su navegador. Instrucciones en **[SERVIDOR.md](SERVIDOR.md)**.
 
 **Sacar la documentación fuera**
 - Imagen **PNG** o **SVG** del plano completo.
@@ -63,7 +71,7 @@ No hay que instalar ni descargar nada: el enlace abre la herramienta con una sal
 
 ## Dónde se guardan los datos
 
-En tu equipo y en ningún sitio más. No hay servidor, no hay cuenta y no sale una sola petición a Internet. Se guarda en el almacenamiento local del navegador y, si vinculas un archivo, en ese `.json` que eliges tú.
+Si usas el modo servidor, en tu servidor (ver [SERVIDOR.md](SERVIDOR.md)). Si no, en tu equipo y en ningún sitio más. No hay servidor, no hay cuenta y no sale una sola petición a Internet. Se guarda en el almacenamiento local del navegador y, si vinculas un archivo, en ese `.json` que eliges tú.
 
 Un aviso importante: el almacenamiento del navegador va atado a la ruta del archivo. Si mueves el HTML o te descargas otra copia en otra carpeta, ese almacén no viaja contigo. Por eso conviene vincular un archivo o exportar el JSON de vez en cuando. La aplicación avisa en rojo si detecta que el navegador no le deja guardar.
 

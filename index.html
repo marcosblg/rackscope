@@ -242,6 +242,22 @@ body.mv .port:active{cursor:grabbing}
 .nv h4:first-child{margin-top:0}
 .nv h4 span{font-weight:400;color:var(--tx3);font-size:11.5px;margin-left:6px}
 .nv ul{margin:0;padding-left:18px;font-size:12.5px;line-height:1.6;color:var(--tx2)}
+.port.sfp{border-style:dashed;border-radius:2px;font-size:8px}
+.port.sfpgap,.pspc.sfpgap{margin-left:18px}
+.pspc{width:21px;height:21px}
+.ports.dense .pspc{width:17px;height:17px}
+.port.xr::before{content:"↗";position:absolute;left:-5px;top:-8px;font-size:10px;font-weight:800;color:var(--gold);text-shadow:0 0 2px var(--bg)}
+.conn .xroom{color:var(--gold);font-weight:700}
+.el.t-custom{border-left:4px solid var(--tc,#ff9f5c)}
+label.chk{display:flex;gap:8px;align-items:center;font-size:12.5px;color:var(--tx2);cursor:pointer}
+.tlist{display:flex;flex-direction:column;gap:6px}
+.tr{display:flex;gap:6px;align-items:center}
+.tr input[type=text]{flex:1;background:var(--bg2);border:1.5px solid var(--line2);border-radius:8px;padding:8px 10px;font-size:13px;outline:none}
+.tr input[type=color]{width:44px;height:36px;padding:2px;background:var(--bg2);border:1.5px solid var(--line2);border-radius:8px}
+#pendbar{position:fixed;left:50%;bottom:64px;transform:translateX(-50%);z-index:240;display:none;align-items:center;gap:10px;max-width:min(760px,94vw);padding:9px 14px;border-radius:10px;background:var(--warn);color:#0e131c;font-size:12.5px;font-weight:600;box-shadow:var(--sh)}
+#pendbar.on{display:flex}
+#pendbar b{color:#000}
+#pendbar button{background:#0e131c;color:#ffe0a3;border:0;padding:5px 10px;border-radius:6px;font-size:11.5px;font-weight:700;flex:0 0 auto}
 #toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--panel);border:1.5px solid var(--acc);padding:10px 16px;border-radius:10px;font-size:13px;z-index:400;opacity:0;pointer-events:none;transition:.2s;box-shadow:var(--sh);font-weight:600}
 #toast.on{opacity:1;transform:translateX(-50%) translateY(-4px)}
 #legend{position:fixed;right:14px;bottom:14px;background:var(--panel);border:1px solid var(--line2);border-radius:10px;padding:10px 12px;font-size:11px;z-index:50;box-shadow:var(--sh)}
@@ -349,6 +365,7 @@ body.mv .port:active{cursor:grabbing}
 <div id="tip"></div>
 <div id="toast"></div>
 <div id="news"></div>
+<div id="pendbar"><span id="pendT"></span><button id="pendX">Cancelar</button></div>
 <div id="print"></div>
 <div id="legend"></div>
 
@@ -425,26 +442,34 @@ function seed(){
 /* ---------- estado ---------- */
 let DB=null,S=null;
 function newRoom(name,st){return {id:nid("s"),name:name||"Sala de ejemplo",state:migrate(st||seed())};}
-function freshDB(){const r=newRoom("Sala de ejemplo");return {v:2,current:r.id,theme:"dark",cableMode:"sel",rooms:[r]};}
+function freshDB(){const r=newRoom("Sala de ejemplo");return {v:3,current:r.id,theme:"dark",cableMode:"sel",expScope:"room",rooms:[r],types:[],xlinks:[]};}
+function setDB(d){DB=d;XT=Object.create(null);DB.types.forEach(t=>XT[t.id]=t);}
+// valida una copia completa (o el formato antiguo de una sola sala) y la deja lista para usar
+function prepDB(d){
+  if(!d||typeof d!=="object")return null;
+  let rooms=null;
+  if(Array.isArray(d.rooms))rooms=objs(d.rooms);
+  else if(Array.isArray(d.racks))rooms=[{name:"Sala 1",state:d}];
+  if(!rooms||!rooms.length)return null;
+  const types=objs(d.types).map(t=>({id:safeId(t.id,"t"),name:str(t.name).trim().slice(0,60)||"Tipo",color:safeColor(t.color)})).filter(t=>!has(TYPES,t.id));
+  const xt=Object.create(null);types.forEach(t=>xt[t.id]=t);
+  const seen=new Set();
+  rooms.forEach(r=>{r.id=safeId(r.id,"s");if(seen.has(r.id))r.id=nid("s");seen.add(r.id);r.name=str(r.name)||"Sala";r.state=migrate(r.state,xt);});
+  const fin=o=>{                                      // extremo de un cable entre salas: sala, equipo y boca deben existir
+    if(!o||typeof o!=="object"||typeof o.room!=="string"||typeof o.el!=="string")return null;
+    const r=rooms.find(x=>x.id===o.room);if(!r)return null;
+    let e=null;r.state.racks.forEach(k=>k.elements.forEach(x=>{if(x.id===o.el)e=x;}));
+    const port=int(o.port,1,200,0);
+    return e&&port&&port<=e.ports?{room:r.id,el:e.id,port}:null;
+  };
+  const xlinks=objs(d.xlinks).map(l=>{const a=fin(l.a),b=fin(l.b);
+    return a&&b&&a.room!==b.room?{id:safeId(l.id,"l"),a,b,cable:has(CABLES,l.cable)?l.cable:"otro",label:str(l.label),note:str(l.note)}:null;}).filter(Boolean);
+  return {v:3,current:rooms.some(r=>r.id===d.current)?d.current:rooms[0].id,
+    theme:d.theme==="light"?"light":"dark",cableMode:pick(d.cableMode,["none","sel","all"],"sel"),
+    expScope:d.expScope==="all"?"all":"room",rooms,types,xlinks};
+}
 function load(){
-  try{
-    const raw=localStorage.getItem(KEY);
-    if(raw){
-      const d=JSON.parse(raw);
-      if(d&&Array.isArray(d.rooms)&&d.rooms.length){          // formato nuevo
-        d.rooms.forEach(r=>{r.id=safeId(r.id,"s");r.name=str(r.name)||"Sala";r.state=migrate(r.state||seed());});
-        if(!d.rooms.some(r=>r.id===d.current))d.current=d.rooms[0].id;
-        d.theme=d.theme||"dark";d.cableMode=d.cableMode||"sel";
-        return d;
-      }
-      if(d&&d.racks){                                         // formato antiguo: pasa a ser la primera sala
-        const db=freshDB();
-        db.rooms=[newRoom("Sala 1",d)];db.current=db.rooms[0].id;
-        db.theme=d.theme||"dark";db.cableMode=d.cableMode||"sel";
-        return db;
-      }
-    }
-  }catch(e){}
+  try{const raw=localStorage.getItem(KEY);if(raw){const d=prepDB(JSON.parse(raw));if(d)return d;}}catch(e){}
   return freshDB();
 }
 function room(){return DB.rooms.find(r=>r.id===DB.current)||DB.rooms[0];}
@@ -462,8 +487,16 @@ const str=x=>x==null?"":String(x);
 const has=(o,k)=>typeof k==="string"&&Object.prototype.hasOwnProperty.call(o,k);
 const int=(x,lo,hi,def)=>{const n=Math.round(+x);return Number.isFinite(n)?Math.max(lo,Math.min(hi,n)):def;};
 const pick=(x,list,def)=>list.includes(x)?x:def;
+function safeColor(c){
+  c=str(c).trim();
+  if(/^#[0-9a-f]{6}$/i.test(c))return c.toLowerCase();
+  if(/^#[0-9a-f]{3}$/i.test(c))return ("#"+c[1]+c[1]+c[2]+c[2]+c[3]+c[3]).toLowerCase();
+  return "#ff9f5c";
+}
+let XT=Object.create(null);                         // tipos de equipo propios (DB.types) por id
 const objs=x=>Array.isArray(x)?x.filter(o=>o&&typeof o==="object"&&!Array.isArray(o)):[];
-function migrate(d){
+function migrate(d,xt){
+  xt=xt||XT;
   d=d&&typeof d==="object"&&!Array.isArray(d)?d:{};
   d.links=objs(d.links);d.racks=objs(d.racks);
   d.racks.forEach(r=>{r.elements=objs(r.elements);r.elements.forEach(e=>e.ports=int(e.ports,1,200,1));});
@@ -489,11 +522,12 @@ function migrate(d){
     r.id=safeId(r.id,"r");r.name=str(r.name)||"RACK";r.u=int(r.u,1,60,42);r.ubot=!!r.ubot;
     r.elements.forEach(e=>{
       const old=e.id;e.id=safeId(e.id,"e");if(typeof old==="string")emap[old]=e.id;emap[e.id]=e.id;
-      e.name=str(e.name);e.sub=str(e.sub);e.type=has(TYPES,e.type)?e.type:"otro";
+      e.name=str(e.name);e.sub=str(e.sub);e.type=has(TYPES,e.type)||has(xt,e.type)?e.type:"otro";
       e.rows=int(e.rows,1,4,1);e.u=int(e.u,1,20,1);e.h=0;
       e.span=pick(+e.span,[3,4,5,6,8,12],12);e.pmode=pick(e.pmode,["grid","free"],"grid");
       e.palign=pick(e.palign,["left","center","right"],"left");e.flow=pick(e.flow,["row","col"],"row");
       e.group=int(e.group,0,24,0);
+      e.sfp=int(e.sfp,0,Math.min(16,e.ports-1),0);e.sfpSide=e.sfpSide==="left"?"left":"right";e.inv=!!e.inv;
       if(Array.isArray(e.pos)){
         e.pos=e.pos.map(q=>({x:Math.max(0,Math.min(100,+(q&&q.x)||50)),y:Math.max(0,Math.min(100,+(q&&q.y)||50))}));
         if(e.pos.length<e.ports){const ex=defaultPos(e);while(e.pos.length<e.ports)e.pos.push(ex[e.pos.length]);}
@@ -520,11 +554,19 @@ function save(){
   DB.theme=S.theme;DB.cableMode=S.cableMode;
   try{localStorage.setItem(KEY,JSON.stringify(DB));lsOK=true;lastSave=Date.now();}
   catch(e){lsOK=false;}
-  if(fileHandle){clearTimeout(wTimer);wTimer=setTimeout(writeFile,600);}
+  if(!quiet){
+    if(SRV){clearTimeout(srvTimer);srvTimer=setTimeout(srvPush,600);}
+    else if(fileHandle){clearTimeout(wTimer);wTimer=setTimeout(writeFile,600);}
+  }
   updateSaveUI();
 }
 function updateSaveUI(){
   const n=$("#savest");if(!n)return;
+  if(SRV){
+    n.textContent=srvOK?"🌐 Servidor":"⚠ Sin conexión con el servidor";n.className="pill "+(srvOK?"ok":"bad");
+    n.title=srvOK?"Se guarda en el servidor; los cambios de los demás aparecen solos":"No se puede guardar en el servidor: revisa la conexión";
+    $("#warn").classList.remove("on");layout();return;
+  }
   if(fileHandle){n.textContent="💾 "+fileName;n.className="pill ok";n.title="Se guarda solo en tu archivo y en el navegador";}
   else if(lsOK){n.textContent="Guardado en el navegador";n.className="pill ok";n.title="Vincula un archivo para no depender del navegador";}
   else {n.textContent="⚠ SIN GUARDAR";n.className="pill bad";n.title="El navegador no permite guardar: vincula un archivo o exporta el JSON";}
@@ -541,13 +583,105 @@ function idb(){return new Promise(res=>{const q=indexedDB.open("rackmap",1);
 async function idbPut(k,v){const d=await idb();if(!d)return;try{d.transaction("kv","readwrite").objectStore("kv").put(v,k);}catch(e){}}
 async function idbGet(k){const d=await idb();if(!d)return null;return new Promise(res=>{try{
   const q=d.transaction("kv","readonly").objectStore("kv").get(k);q.onsuccess=()=>res(q.result||null);q.onerror=()=>res(null);}catch(e){res(null);}});}
+let fileMod=0,fileBusy=false,quiet=false;           // fileMod: ultima modificacion conocida del archivo vinculado
 async function writeFile(){
+  wTimer=null;
   if(!fileHandle)return false;
   try{
+    try{const f=await fileHandle.getFile();if(fileMod&&f.lastModified!==fileMod){fileConflict(f);return false;}}catch(e){}
     const w=await fileHandle.createWritable();
     await w.write(JSON.stringify(DB,null,2));await w.close();
+    try{fileMod=(await fileHandle.getFile()).lastModified;}catch(e){}
     lastSave=Date.now();updateSaveUI();return true;
   }catch(e){toast("No se pudo escribir en el archivo vinculado");return false;}
+}
+// carga los datos que ha guardado otra persona sin tocar lo que estas viendo (sala, tema, zoom)
+function applyRemote(nd,msg){
+  if(!nd)return;
+  const keep={current:DB.current,theme:DB.theme,cableMode:DB.cableMode,expScope:DB.expScope,zoom:S.zoom};
+  setDB(nd);
+  DB.theme=keep.theme;DB.cableMode=keep.cableMode;DB.expScope=keep.expScope;
+  if(DB.rooms.some(r=>r.id===keep.current))DB.current=keep.current;
+  room().state.zoom=keep.zoom;
+  quiet=true;try{setPending(null);useRoom(DB.current);}finally{quiet=false;}
+  toast(msg);
+}
+function conflictModal(donde,nd,theirs,mine){
+  modal.innerHTML=`<h3>Otra persona ha guardado cambios</h3>
+  <div class="body"><div class="hint">Mientras trabajabas, alguien ha guardado cambios en ${donde}. Si guardas los tuyos encima, se pierden los suyos; si cargas los suyos, se pierde tu último cambio.</div></div>
+  <div class="foot"><button class="btn" id="c_mine">Guardar los míos encima</button><button class="btn acc" id="c_theirs"${nd?"":" disabled"}>Cargar los suyos</button></div>`;
+  veil.classList.add("on");
+  $("#c_theirs").onclick=()=>{closeModal();theirs();};
+  $("#c_mine").onclick=()=>{closeModal();mine();};
+}
+async function fileConflict(f){
+  let nd=null;try{nd=prepDB(JSON.parse(await f.text()));}catch(e){}
+  conflictModal("<b>"+esc(fileName)+"</b>",nd,
+    ()=>{fileMod=f.lastModified;applyRemote(nd,"Cargados los cambios de "+fileName);},
+    ()=>{fileMod=f.lastModified;writeFile();});
+}
+// archivo en una carpeta compartida: cada pocos segundos se mira si otra persona lo ha cambiado
+setInterval(async()=>{
+  if(SRV||!fileHandle||wTimer||fileBusy||document.hidden||veil.classList.contains("on")||pending||tourT)return;
+  fileBusy=true;
+  try{
+    const f=await fileHandle.getFile();
+    if(fileMod&&f.lastModified!==fileMod){
+      fileMod=f.lastModified;
+      const nd=prepDB(JSON.parse(await f.text()));
+      if(nd)applyRemote(nd,"Actualizado con los cambios guardados en "+fileName);
+    }
+  }catch(e){}
+  fileBusy=false;
+},4000);
+
+/* ---- modo servidor (opcional): rackscope.php sirve la pagina y guarda los datos para todo el equipo ---- */
+const SRV=typeof window.RS_SERVER==="string"&&/^[\w.-]+\.php$/.test(window.RS_SERVER)?window.RS_SERVER:null;
+let srvVer=null,srvTimer=null,srvOK=true,srvBusy=false;
+async function srvFetch(opt){
+  opt=opt||{};
+  const r=await fetch(SRV+"?datos=1"+(opt.v?"&v="+encodeURIComponent(opt.v):""),
+    Object.assign({cache:"no-store",headers:{"X-RackScope":"1","Content-Type":"application/json"}},opt.body?{method:"POST",body:opt.body}:{}));
+  let j={};try{j=await r.json();}catch(e){}
+  return {status:r.status,j};
+}
+async function srvPush(force){
+  srvTimer=null;srvBusy=true;
+  try{
+    const {status,j}=await srvFetch({body:JSON.stringify({version:srvVer,force:force===true,db:DB})});
+    if(status===409){srvBusy=false;srvOK=true;
+      const nd=j&&j.db?prepDB(j.db):null;
+      conflictModal("el servidor",nd,()=>{srvVer=j.version;applyRemote(nd,"Cargados los cambios del servidor");},()=>srvPush(true));
+      return;}
+    if(status!==200)throw status;
+    srvVer=j.version;srvOK=true;
+  }catch(e){srvOK=false;}
+  finally{srvBusy=false;updateSaveUI();}
+}
+async function srvPoll(){
+  if(!SRV||srvTimer||srvBusy||document.hidden||veil.classList.contains("on")||pending||tourT)return;
+  srvBusy=true;
+  try{
+    const {status,j}=await srvFetch({v:srvVer||""});
+    if(status!==200)throw status;
+    srvOK=true;
+    if(!j.igual&&j.version!==srvVer){
+      srvVer=j.version;
+      if(j.db)applyRemote(prepDB(j.db),"Actualizado con los cambios de otra persona");
+    }
+  }catch(e){srvOK=false;}
+  srvBusy=false;updateSaveUI();
+}
+async function srvStart(){
+  try{
+    const {status,j}=await srvFetch({});
+    if(status!==200)throw status;
+    srvOK=true;
+    if(j.db){srvVer=j.version;applyRemote(prepDB(j.db),"Datos cargados del servidor");}
+    else{srvVer=null;await srvPush(false);toast("Servidor preparado: se han subido los datos de este navegador");}
+  }catch(e){srvOK=false;}
+  updateSaveUI();
+  setInterval(srvPoll,5000);
 }
 async function linkFile(){
   if(!window.showSaveFilePicker){
@@ -567,12 +701,9 @@ async function openFile(){
   if(!window.showOpenFilePicker){toast("Usa Importar para cargar el JSON");return;}
   try{
     const [h]=await showOpenFilePicker({types:[{description:"Documentación de rack",accept:{"application/json":[".json"]}}]});
-    const txt=await (await h.getFile()).text();
-    const d=JSON.parse(txt);
-    if(!d||!Array.isArray(d.rooms))throw 0;
-    d.rooms.forEach(r=>{r.id=safeId(r.id,"s");r.name=str(r.name)||"Sala";r.state=migrate(r.state||seed());});
-    DB={v:2,current:d.rooms.some(r=>r.id===d.current)?d.current:d.rooms[0].id,
-        theme:d.theme||"dark",cableMode:d.cableMode||"sel",rooms:d.rooms};
+    const f=await h.getFile(),nd=prepDB(JSON.parse(await f.text()));
+    if(!nd)throw 0;
+    setDB(nd);fileMod=f.lastModified;
     fileHandle=h;fileName=h.name;
     await idbPut("handle",h);await idbPut("name",fileName);
     save();useRoom(DB.current);toast("Cargado desde "+fileName);
@@ -585,13 +716,8 @@ async function restoreHandle(){
     if(perm==="granted"){
       fileHandle=h;fileName=h.name;
       try{
-        const txt=await (await h.getFile()).text();const d=JSON.parse(txt);
-        if(d&&Array.isArray(d.rooms)&&d.rooms.length){
-          d.rooms.forEach(r=>{r.id=safeId(r.id,"s");r.name=str(r.name)||"Sala";r.state=migrate(r.state||seed());});
-          DB={v:2,current:d.rooms.some(r=>r.id===d.current)?d.current:d.rooms[0].id,
-              theme:d.theme||"dark",cableMode:d.cableMode||"sel",rooms:d.rooms};
-          useRoom(DB.current);
-        }
+        const f=await h.getFile(),nd=prepDB(JSON.parse(await f.text()));
+        if(nd){setDB(nd);fileMod=f.lastModified;useRoom(DB.current);}
       }catch(e){}
     }else{
       const nm=await idbGet("name")||"tu archivo";
@@ -604,14 +730,77 @@ async function restoreHandle(){
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const racksEl=$("#racks"), svg=$("#cables"), inner=$("#inner"), stage=$("#stage");
 let pending=null;      // {el,port} boca origen al conectar
-function setPending(v){pending=v;$("#popCancel").style.display=v?"":"none";$("#pop").classList.toggle("mini",!!v);}
+function setPending(v){
+  pending=v;$("#popCancel").style.display=v?"":"none";$("#pop").classList.toggle("mini",!!v);
+  const b=$("#pendbar");if(!b)return;
+  if(v){
+    const i=endInfo(v),varias=DB.rooms.length>1;
+    $("#pendT").innerHTML=`Conectando <b>${esc(i.e?i.e.name:"?")} · ${esc(i.e?portName(i.e,v.port):"")}</b>${varias?" de la sala "+esc(i.room?i.room.name:""):""}: pulsa la boca de destino.${varias?" Puede estar en otra sala: cámbiala en el desplegable.":""}`;
+  }
+  b.classList.toggle("on",!!v);
+}
 let openPort=null;     // boca con popover abierto
 let openNode=null;     // nodo DOM de esa boca
 
 function elById(id){for(const r of S.racks)for(const e of r.elements)if(e.id===id)return e;return null;}
 function rackOf(id){for(const r of S.racks)for(const e of r.elements)if(e.id===id)return r;return null;}
-function linksOf(elId,port){return S.links.filter(l=>(l.a.el===elId&&l.a.port===port)||(l.b.el===elId&&l.b.port===port));}
-function other(l,elId,port){return (l.a.el===elId&&l.a.port===port)?l.b:l.a;}
+// cables: los de la sala (S.links) y los que van a otra sala (DB.xlinks, con la sala en cada extremo)
+const isX=l=>!!(l&&l.a&&l.a.room);
+const xHere=()=>DB.xlinks.filter(l=>l.a.room===DB.current||l.b.room===DB.current);
+function linksOf(elId,port){
+  const cur=DB.current,at=x=>x.el===elId&&x.port===port;
+  return S.links.filter(l=>at(l.a)||at(l.b))
+    .concat(DB.xlinks.filter(l=>(l.a.room===cur&&at(l.a))||(l.b.room===cur&&at(l.b))));
+}
+function other(l,elId,port){
+  if(isX(l))return (l.a.room===DB.current&&l.a.el===elId&&l.a.port===port)?l.b:l.a;
+  return (l.a.el===elId&&l.a.port===port)?l.b:l.a;
+}
+function endIn(r,o){for(const rk of r.state.racks)for(const e of rk.elements)if(e.id===o.el)return {e,rk};return {e:null,rk:null};}
+// datos de un extremo de cable, este en esta sala o en otra
+function endInfo(o){
+  const rm=o.room?DB.rooms.find(r=>r.id===o.room):room();
+  const x=rm?endIn(rm,o):{e:null,rk:null};
+  return {e:x.e,rk:x.rk,room:rm,remote:!!o.room&&o.room!==DB.current};
+}
+const findLink=id=>S.links.find(l=>l.id===id)||DB.xlinks.find(l=>l.id===id)||null;
+function dropLink(id){S.links=S.links.filter(l=>l.id!==id);DB.xlinks=DB.xlinks.filter(l=>l.id!==id);}
+// quita los cables (de la sala y entre salas) de unos equipos de esta sala; test filtra por boca
+function dropLinksOf(ids,test){
+  const hit=x=>ids.includes(x.el)&&(!test||test(x)),cur=DB.current;
+  S.links=S.links.filter(l=>!hit(l.a)&&!hit(l.b));
+  DB.xlinks=DB.xlinks.filter(l=>!((l.a.room===cur&&hit(l.a))||(l.b.room===cur&&hit(l.b))));
+}
+// recorre todos los extremos de cable que caen en esta sala (para renumerar bocas)
+function endsHere(fn){
+  S.links.forEach(l=>{fn(l.a);fn(l.b);});
+  DB.xlinks.forEach(l=>{if(l.a.room===DB.current)fn(l.a);if(l.b.room===DB.current)fn(l.b);});
+}
+const typeName=t=>has(TYPES,t)?TYPES[t]:(XT[t]?XT[t].name:"Otro");
+const usedU=r=>r.elements.reduce((a,e)=>a+(e.type==="hueco"?0:(+e.u||1)),0);
+// las SFP van detras de las bocas normales y se numeran aparte: S1, S2...
+function portLabel(e,p){const m=e.ports-(e.sfp||0);return p>m?"SFP "+(p-m):String(p);}
+function portName(e,p){const m=e.ports-(e.sfp||0);return p>m?"SFP "+(p-m):"boca "+p;}
+// orden en que se dibujan las bocas: bloque normal y bloque SFP; en numeracion vertical por
+// columnas completas y, si se pide, con los pares arriba (impares abajo)
+function portSeq(e){
+  const out=[];
+  if(e.pmode==="free"){for(let p=1;p<=e.ports;p++)out.push({p,c:0,sg:false});return out;}
+  const rws=e.rows||1,colFlow=e.flow==="col"&&rws>1,m=e.ports-(e.sfp||0),ncol=Math.ceil(e.ports/rws);
+  const grp=(a,b,second)=>{
+    const ps=[];for(let p=a;p<=b;p++)ps.push(p);
+    if(colFlow){
+      for(let i=0,c=0;i<ps.length;i+=rws,c++){
+        const col=ps.slice(i,i+rws);while(col.length<rws)col.push(null);
+        if(e.inv)col.reverse();
+        col.forEach(p=>out.push({p,c,sg:second&&c===0}));
+      }
+    }else ps.forEach((p,i)=>out.push({p,c:i%ncol,sg:second&&i===0}));
+  };
+  if(e.sfpSide==="left"&&m<e.ports){grp(m+1,e.ports,false);grp(1,m,true);}
+  else{grp(1,m,false);if(m<e.ports)grp(m+1,e.ports,true);}
+  return out;
+}
 function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
 function toast(m){const t=$("#toast");t.textContent=m;t.classList.add("on");clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove("on"),2200);}
 function toastUndo(m,snap){                       // aviso con boton de deshacer (30 s)
@@ -619,9 +808,7 @@ function toastUndo(m,snap){                       // aviso con boton de deshacer
   t.innerHTML=esc(m)+' <button class="act">Deshacer</button>';
   t.classList.add("on");clearTimeout(t._t);
   t.querySelector(".act").onclick=()=>{
-    DB=JSON.parse(snap);
-    DB.rooms.forEach(r=>{r.state=migrate(r.state);});
-    if(!DB.rooms.some(r=>r.id===DB.current))DB.current=DB.rooms[0].id;
+    setDB(prepDB(JSON.parse(snap)));
     save();useRoom(DB.current);toast("Restaurado");
   };
   t._t=setTimeout(()=>{t.classList.remove("on");t.textContent="";},30000);
@@ -654,13 +841,13 @@ function render(){
   });
   const add=document.createElement("button");add.className="addel";add.id="addrack";add.textContent="＋ rack";
   add.style.minHeight="60px";add.style.padding="16px 20px";
-  add.onclick=()=>{const n=prompt("Nombre del rack:","RACK NUEVO");if(n){S.racks.push({id:nid("r"),name:n,elements:[]});save();render();}};
+  add.onclick=newRack;
   racksEl.appendChild(add);
   applyFilter();
   selCount();
   layoutU();
   requestAnimationFrame(draw);
-  $("#stats").textContent=`${S.racks.length} racks · ${S.racks.reduce((a,r)=>a+r.elements.length,0)} equipos · ${S.links.length} cables`;
+  $("#stats").textContent=`${S.racks.length} racks · ${S.racks.reduce((a,r)=>a+r.elements.length,0)} equipos · ${S.links.length} cables${xHere().length?" · "+xHere().length+" a otras salas":""}`;
 }
 
 const UPX=34;      // altura minima por U (el contenido puede pedir mas)
@@ -675,13 +862,14 @@ function layoutU(){
     const filas=[];
     grid.querySelectorAll(".el").forEach(en=>{
       const e=elById(en.dataset.el);if(!e)return;
-      const top=en.offsetTop,h=en.offsetHeight,u=Math.max(1,+e.u||1);
+      const top=en.offsetTop,h=en.offsetHeight,u=Math.max(1,+e.u||1),hu=e.type==="hueco";
       const f=filas.find(x=>Math.abs(x.top-top)<3);
-      if(f){f.h=Math.max(f.h,h);f.u=Math.max(f.u,u);}
-      else filas.push({top,h,u});
+      if(f){f.h=Math.max(f.h,h);f.u=Math.max(f.u,u);f.hueco=f.hueco&&hu;}
+      else filas.push({top,h,u,hueco:hu});
     });
     filas.sort((a,b)=>a.top-b.top);
-    const usadas=filas.reduce((a,f)=>a+f.u,0);
+    const usadas=filas.reduce((a,f)=>a+f.u,0);                  // espacio ya dibujado
+    const huecos=filas.reduce((a,f)=>a+(f.hueco?f.u:0),0);       // huecos reservados: siguen estando libres
     const total=rk.u||42, libres=Math.max(0,total-usadas), tope=Math.max(total,usadas);
     const hue=grid.querySelector('[data-free="1"]');
     if(hue){
@@ -694,7 +882,7 @@ function layoutU(){
       const lo=rk.ubot?tope-off-f.u+1:off+1, hi=rk.ubot?tope-off:off+f.u;
       const txt=f.u===1?String(lo):(rk.ubot?hi+"–"+lo:lo+"–"+hi);
       const over=off+f.u>total;
-      out+=`<div class="useg${over?" over":""}" style="height:${f.h-1}px">${txt}</div>`;
+      out+=`<div class="useg${over?" over":""}${f.hueco?" hueco":""}" style="height:${f.h-1}px">${txt}</div>`;
       off+=f.u;
     });
     for(let k=0;k<libres;k++){
@@ -703,14 +891,16 @@ function layoutU(){
     }
     rail.innerHTML=out;
     const cnt=rn.querySelector(".rack-head .cnt");
-    if(cnt){cnt.textContent=usadas+" / "+total+" U";cnt.className="cnt"+(usadas>total?" over":"");}
+    const disp=libres+huecos;
+    if(cnt){cnt.textContent=(usadas-huecos)+" / "+total+" U";cnt.className="cnt"+(usadas>total?" over":"");}
     const fr=rn.querySelector(".rack-head .free");
-    if(fr)fr.textContent=libres?"· quedan "+libres+" U libres":(usadas>total?"· te pasas "+(usadas-total)+" U":"· rack lleno");
+    if(fr)fr.textContent=usadas>total?"· te pasas "+(usadas-total)+" U":(disp?"· quedan "+disp+" U libres"+(huecos?" ("+huecos+" en huecos reservados)":""):"· rack lleno");
   });
 }
 function elNode(e,i,r){
   const d=document.createElement("div");
-  d.className="el t-"+e.type;d.dataset.el=e.id;
+  d.className="el t-"+(has(TYPES,e.type)?e.type:"custom");d.dataset.el=e.id;
+  if(XT[e.type])d.style.setProperty("--tc",XT[e.type].color);
   d.style.gridColumn="span "+(e.span||12);
   d.style.minHeight=(Math.max(1,+e.u||1)*UPX)+"px";
   if(e.type==="hueco"){                       // caja que representa un hueco vacio del rack
@@ -727,7 +917,7 @@ function elNode(e,i,r){
   const cols=Math.ceil(e.ports/(e.rows||1));
   d.innerHTML=`<div class="el-head">
       <span class="el-name">${esc(e.name)}</span>
-      <span class="badge">${esc(TYPES[e.type]||e.type)}</span>
+      <span class="badge">${esc(typeName(e.type))}</span>
       <span class="ubadge" title="Altura en U">${e.u||1}U</span>
       <span class="el-sub">${esc(e.sub)}</span>
       <span class="el-tools">
@@ -741,16 +931,15 @@ function elNode(e,i,r){
   d.insertAdjacentHTML("beforeend",'<div class="ugrip" title="Arrastra para cambiar la altura en U"></div>');
   const pc=d.querySelector(".ports");
   const pos=free?(Array.isArray(e.pos)&&e.pos.length>=e.ports?e.pos:(e.pos=defaultPos(e))):null;
-  const rws=e.rows||1, colFlow=!free&&e.flow==="col"&&rws>1, g=+e.group||0;
-  const ncol=Math.ceil(e.ports/rws);
-  for(let p=1;p<=e.ports;p++){
-    const b=document.createElement("button");
-    b.className="port";b.dataset.el=e.id;b.dataset.port=p;b.textContent=p;
+  const g=+e.group||0,m=e.ports-(e.sfp||0);
+  for(const it of portSeq(e)){
+    if(it.p==null){const sp=document.createElement("span");sp.className="pspc"+(it.sg?" sfpgap":"");pc.appendChild(sp);continue;}
+    const p=it.p,b=document.createElement("button");
+    b.className="port";b.dataset.el=e.id;b.dataset.port=p;b.textContent=p>m?"S"+(p-m):p;
+    if(p>m){b.classList.add("sfp");b.title="SFP "+(p-m);}
     if(free){const q=pos[p-1]||{x:50,y:50};b.style.left=q.x+"%";b.style.top=q.y+"%";}
-    else if(g>0){
-      const col=colFlow?Math.floor((p-1)/rws):((p-1)%ncol);
-      if(col>0&&col%g===0)b.classList.add("gap");
-    }
+    else if(it.sg)b.classList.add("sfpgap");
+    else if(g>0&&it.c>0&&it.c%g===0)b.classList.add("gap");
     if(sel.has(e.id+"|"+p))b.classList.add("msel");
     const ls=linksOf(e.id,p);
     if(ls.length){
@@ -758,6 +947,7 @@ function elNode(e,i,r){
       const c=(CABLES[ls[0].cable]||CABLES.otro).c;
       b.style.background=c+"55";b.style.borderColor=c;
       if(ls.length>1)b.classList.add("multi");
+      if(ls.some(isX))b.classList.add("xr");
     }
     pc.appendChild(b);
   }
@@ -770,6 +960,7 @@ function center(n,base){const r=n.getBoundingClientRect();const z=S.zoom;
   return {x:(r.left+r.width/2-base.left)/z,y:(r.top+r.height/2-base.top)/z};}
 
 function pathOf(l,base){
+  if(isX(l))return null;                       // el otro extremo esta en otra sala
   const a=portNode(l.a.el,l.a.port),b=portNode(l.b.el,l.b.port);
   if(!a||!b)return null;
   const p=center(a,base),q=center(b,base);
@@ -816,6 +1007,7 @@ function highlight(){
   ls.forEach(l=>{
     const p=svg.querySelector(`path[data-link="${l.id}"]`);if(p)p.classList.add("hl");
     const o=other(l,ref.el,ref.port);
+    if(o.room&&o.room!==DB.current)return;
     const n=portNode(o.el,o.port);if(n)n.classList.add("peer");
   });
 }
@@ -826,12 +1018,12 @@ function showTip(node){
   const elId=node.dataset.el,port=+node.dataset.port,e=elById(elId);
   if(!e)return;
   const ls=linksOf(elId,port);
-  let h=`<b>${esc(e.name)} · boca ${port}</b>`;
+  let h=`<b>${esc(e.name)} · ${esc(portName(e,port))}</b>`;
   if(!ls.length)h+=`<div class="fr">Libre — sin cable</div>`;
   else ls.slice(0,3).forEach(l=>{
-    const o=other(l,elId,port),oe=elById(o.el),orr=rackOf(o.el),cb=CABLES[l.cable]||CABLES.otro;
-    h+=`<div style="margin-top:4px">➜ <b>${esc(oe?oe.name:"?")}</b> · boca ${o.port}`
-      +`<div class="fr">${esc(orr?orr.name:"")} · ${cb.n}${l.label?" · "+esc(l.label):""}</div></div>`;
+    const o=other(l,elId,port),i=endInfo(o),cb=CABLES[l.cable]||CABLES.otro;
+    h+=`<div style="margin-top:4px">➜ <b>${esc(i.e?i.e.name:"?")}</b> · ${esc(i.e?portName(i.e,o.port):"boca "+o.port)}`
+      +`<div class="fr">${i.remote?"↗ "+esc(i.room?i.room.name:"?")+" › ":""}${esc(i.rk?i.rk.name:"")} · ${cb.n}${l.label?" · "+esc(l.label):""}</div></div>`;
   });
   if(ls.length>3)h+=`<div class="fr">…y ${ls.length-3} más</div>`;
   tip.innerHTML=h;tip.classList.add("on");
@@ -862,23 +1054,23 @@ function showPop(elId,port,node){
   node.classList.add("sel");
   openPort={el:elId,port};
   $("#popT").textContent=e.name;
-  $("#popP").textContent="Boca "+port;
+  const pnm=portName(e,port);$("#popP").textContent=pnm[0].toUpperCase()+pnm.slice(1);
   const ls=linksOf(elId,port);
   const rk=rackOf(elId);
   let h="";
   if(!ls.length){
-    h=`<div class="empty">Boca <b>libre</b> — sin cable conectado.<br><span class="hint">${esc(rk?rk.name:"")} · ${esc(e.sub||TYPES[e.type])}</span></div>`;
+    h=`<div class="empty">Boca <b>libre</b> — sin cable conectado.<br><span class="hint">${esc(rk?rk.name:"")} · ${esc(e.sub||typeName(e.type))}</span></div>`;
   }else{
     for(const l of ls){
-      const o=other(l,elId,port), oe=elById(o.el), orr=rackOf(o.el), cb=CABLES[l.cable]||CABLES.otro;
+      const o=other(l,elId,port), i=endInfo(o), oe=i.e, orr=i.rk, cb=CABLES[l.cable]||CABLES.otro;
       h+=`<div class="conn">
-        <div class="to"><span class="arrow">➜</span> ${esc(oe?oe.name:"?")} <span class="chip">boca ${o.port}</span></div>
-        <div class="hint">${esc(orr?orr.name:"")}${oe&&oe.sub?" · "+esc(oe.sub):""}</div>
+        <div class="to"><span class="arrow">➜</span> ${esc(oe?oe.name:"?")} <span class="chip">${esc(oe?portName(oe,o.port):"boca "+o.port)}</span></div>
+        <div class="hint">${i.remote?`<span class="xroom">↗ ${esc(i.room?i.room.name:"?")}</span> › `:""}${esc(orr?orr.name:"")}${oe&&oe.sub?" · "+esc(oe.sub):""}</div>
         <div class="meta"><span class="chip"><i style="background:${cb.c}"></i>${cb.n}</span>
         ${l.label?`<span class="chip">🏷 ${esc(l.label)}</span>`:""}</div>
         ${l.note?`<div class="note">${esc(l.note)}</div>`:""}
         <div class="row"><button class="btn sm" data-ledit="${l.id}">Editar</button>
-        <button class="btn sm" data-lgo="${l.id}">Ir al otro extremo</button>
+        <button class="btn sm" data-lgo="${l.id}">${i.remote?"Ir a esa sala":"Ir al otro extremo"}</button>
         <button class="btn sm danger" data-ldel="${l.id}">Quitar cable</button></div>
       </div>`;
     }
@@ -900,10 +1092,12 @@ racksEl.addEventListener("click",ev=>{
   if(moveMode||skipClick)return;
   const elId=p.dataset.el,port=+p.dataset.port;
   if(pending){
-    if(pending.el===elId&&pending.port===port){setPending(null);toast("Conexión cancelada");closePop();return;}
-    const l={id:nid("l"),a:{...pending},b:{el:elId,port},cable:"cat6",label:"",note:""};
+    if(pending.room===DB.current&&pending.el===elId&&pending.port===port){setPending(null);toast("Conexión cancelada");closePop();return;}
+    const id=nid("l"),base={id,cable:"cat6",label:"",note:""};
+    if(pending.room===DB.current)S.links.push(Object.assign(base,{a:{el:pending.el,port:pending.port},b:{el:elId,port}}));
+    else DB.xlinks.push(Object.assign(base,{a:{room:pending.room,el:pending.el,port:pending.port},b:{room:DB.current,el:elId,port}}));
     setPending(null);
-    S.links.push(l);save();render();editLink(l.id,true);
+    save();render();editLink(id,true);
     return;
   }
   showPop(elId,port,p);
@@ -936,18 +1130,20 @@ pop.querySelector(".ph").addEventListener("pointermove",ev=>{
 pop.querySelector(".ph").addEventListener("pointerup",()=>{popDrag=null;});
 $("#popX").onclick=()=>{setPending(null);closePop();};
 $("#popCancel").onclick=()=>{setPending(null);toast("Conexión cancelada");};
+$("#pendX").onclick=()=>{setPending(null);closePop();toast("Conexión cancelada");};
 $("#popLink").onclick=()=>{
   if(!openPort)return;
-  setPending({...openPort});
-  toast("Ahora pulsa la boca de destino");
+  setPending({room:DB.current,...openPort});
 };
 $("#popB").addEventListener("click",ev=>{
   const b=ev.target.closest("button");if(!b)return;
   if(b.dataset.ledit)editLink(b.dataset.ledit,false);
-  if(b.dataset.ldel){S.links=S.links.filter(l=>l.id!==b.dataset.ldel);save();const o={...openPort};render();const n=portNode(o.el,o.port);if(n)showPop(o.el,o.port,n);toast("Cable eliminado");}
+  if(b.dataset.ldel){dropLink(b.dataset.ldel);save();const o={...openPort};render();const n=portNode(o.el,o.port);if(n)showPop(o.el,o.port,n);toast("Cable eliminado");}
   if(b.dataset.lgo){
-    const l=S.links.find(x=>x.id===b.dataset.lgo);if(!l)return;
-    const o=other(l,openPort.el,openPort.port);const n=portNode(o.el,o.port);
+    const l=findLink(b.dataset.lgo);if(!l)return;
+    const o=other(l,openPort.el,openPort.port);
+    if(o.room&&o.room!==DB.current)useRoom(o.room);
+    const n=portNode(o.el,o.port);
     if(n){n.scrollIntoView({block:"center",inline:"center",behavior:"smooth"});setTimeout(()=>showPop(o.el,o.port,n),320);}
   }
 });
@@ -965,11 +1161,11 @@ function handleAct(btn){
   if(act==="rrename")editRack(r);
   if(act==="rleft"&&ri>0){S.racks.splice(ri,1);S.racks.splice(ri-1,0,r);save();render();}
   if(act==="rright"&&ri<S.racks.length-1){S.racks.splice(ri,1);S.racks.splice(ri+1,0,r);save();render();}
-  if(act==="rdel"){if(confirm(`¿Borrar el rack "${r.name}" y todos sus cables?`)){const ids=r.elements.map(x=>x.id);S.links=S.links.filter(l=>!ids.includes(l.a.el)&&!ids.includes(l.b.el));S.racks.splice(ri,1);save();render();}}
+  if(act==="rdel"){if(confirm(`¿Borrar el rack "${r.name}" y todos sus cables?`)){const ids=r.elements.map(x=>x.id);dropLinksOf(ids);S.racks.splice(ri,1);save();render();}}
   if(act==="eup"&&ei>0){r.elements.splice(ei,1);r.elements.splice(ei-1,0,e);save();render();}
   if(act==="edown"&&ei<r.elements.length-1){r.elements.splice(ei,1);r.elements.splice(ei+1,0,e);save();render();}
   if(act==="eedit")editElement(r,e);
-  if(act==="edel"){if(confirm(`¿Borrar "${e.name}" y sus cables?`)){S.links=S.links.filter(l=>l.a.el!==e.id&&l.b.el!==e.id);r.elements.splice(ei,1);save();render();}}
+  if(act==="edel"){if(confirm(`¿Borrar "${e.name}" y sus cables?`)){dropLinksOf([e.id]);r.elements.splice(ei,1);save();render();}}
 }
 
 /* ---------- modales ---------- */
@@ -978,11 +1174,11 @@ function closeModal(){veil.classList.remove("on");modal.innerHTML="";}
 veil.addEventListener("click",ev=>{if(ev.target===veil)closeModal();});
 
 function editLink(id,isNew){
-  const l=S.links.find(x=>x.id===id);if(!l)return;
-  const A=elById(l.a.el),B=elById(l.b.el);
+  const l=findLink(id);if(!l)return;
+  const lado=o=>{const i=endInfo(o);return `${isX(l)?esc(i.room?i.room.name:"?")+" › ":""}${esc(i.e?i.e.name:"?")} · ${esc(i.e?portName(i.e,o.port):"boca "+o.port)}`;};
   modal.innerHTML=`<h3>${isNew?"Nueva conexión":"Editar conexión"}</h3>
   <div class="body">
-    <div class="hint">${esc(A?A.name:"?")} · boca ${l.a.port} &nbsp;⇄&nbsp; ${esc(B?B.name:"?")} · boca ${l.b.port}</div>
+    <div class="hint">${lado(l.a)} &nbsp;⇄&nbsp; ${lado(l.b)}</div>
     <div class="fld"><label>Tipo de cable</label><select id="f_cable">${Object.entries(CABLES).map(([k,v])=>`<option value="${k}" ${l.cable===k?"selected":""}>${v.n}</option>`).join("")}</select></div>
     <div class="fld"><label>Etiqueta corta</label><input id="f_label" value="${esc(l.label)}" placeholder="p. ej. UPLINK-CORE-A / TOMA 214"></div>
     <div class="fld"><label>Nota / comentario</label><textarea id="f_note" placeholder="Recorrido, VLAN, fecha, incidencias…">${esc(l.note)}</textarea></div>
@@ -994,9 +1190,9 @@ function editLink(id,isNew){
     <button class="btn acc" id="m_ok">Guardar</button>
   </div>`;
   veil.classList.add("on");
-  setTimeout(()=>$("#f_label").focus(),40);
-  $("#m_cancel").onclick=()=>{if(isNew){S.links=S.links.filter(x=>x.id!==id);save();render();}closeModal();};
-  $("#m_del").onclick=()=>{S.links=S.links.filter(x=>x.id!==id);save();render();closeModal();toast("Cable eliminado");};
+  setTimeout(()=>{const n=$("#f_label");if(n)n.focus();},40);
+  $("#m_cancel").onclick=()=>{if(isNew){dropLink(id);save();render();}closeModal();};
+  $("#m_del").onclick=()=>{dropLink(id);save();render();closeModal();toast("Cable eliminado");};
   $("#m_ok").onclick=()=>{
     l.cable=$("#f_cable").value;l.label=$("#f_label").value.trim();l.note=$("#f_note").value.trim();
     save();render();closeModal();toast("Conexión guardada");
@@ -1005,7 +1201,7 @@ function editLink(id,isNew){
 }
 
 function editRack(r){
-  const usadas=r.elements.reduce((a,e)=>a+(+e.u||1),0);
+  const usadas=usedU(r);
   modal.innerHTML=`<h3>Rack</h3>
   <div class="body">
     <div class="fld"><label>Nombre</label><input id="r_name" value="${esc(r.name)}"></div>
@@ -1014,11 +1210,11 @@ function editRack(r){
       <option value="0"${r.ubot?"":" selected"}>1 arriba (sigue el orden de la lista)</option>
       <option value="1"${r.ubot?" selected":""}>1 abajo (como el rack real)</option>
     </select></div>
-    <div class="hint">Ocupadas ahora mismo: <b>${usadas} U</b> entre ${r.elements.length} equipos. La U de cada equipo se define en su propia ficha (✎).</div>
+    <div class="hint">Ocupadas ahora mismo: <b>${usadas} U</b> entre ${r.elements.length} equipos. La U de cada equipo se define en su propia ficha (✎); los huecos reservados cuentan como libres.</div>
   </div>
   <div class="foot"><button class="btn" id="m_cancel">Cancelar</button><button class="btn acc" id="m_ok">Guardar</button></div>`;
   veil.classList.add("on");
-  setTimeout(()=>$("#r_name").focus(),40);
+  setTimeout(()=>{const n=$("#r_name");if(n)n.focus();},40);
   $("#m_cancel").onclick=closeModal;
   $("#m_ok").onclick=()=>{
     r.name=$("#r_name").value.trim()||r.name;
@@ -1029,14 +1225,24 @@ function editRack(r){
 }
 function editElement(rack,e){
   const isNew=!e;
-  e=e||{id:nid("e"),name:"",sub:"",type:"panel",ports:24,rows:1,u:1,span:12,h:0,pmode:"grid",palign:"left",pos:null,flow:"col",group:6};
+  e=e||{id:nid("e"),name:"",sub:"",type:"panel",ports:24,rows:1,u:1,span:12,h:0,pmode:"grid",palign:"left",pos:null,flow:"col",group:6,sfp:0,sfpSide:"right",inv:false};
   modal.innerHTML=`<h3>${isNew?"Nuevo elemento":"Editar elemento"}</h3>
   <div class="body">
     <div class="fld"><label>Nombre</label><input id="e_name" value="${esc(e.name)}" placeholder="SWITCH CORE 01"></div>
     <div class="fld"><label>Subtítulo / modelo / IP</label><input id="e_sub" value="${esc(e.sub)}" placeholder="192.168.10.2 — 48p 2.5G"></div>
     <div class="grid2">
-      <div class="fld"><label>Tipo</label><select id="e_type">${Object.entries(TYPES).map(([k,v])=>`<option value="${k}" ${e.type===k?"selected":""}>${v}</option>`).join("")}</select></div>
-      <div class="fld"><label>Número de bocas</label><input id="e_ports" type="number" min="1" max="96" value="${e.ports}"></div>
+      <div class="fld"><label>Tipo</label><select id="e_type">${Object.entries(TYPES).map(([k,v])=>`<option value="${k}" ${e.type===k?"selected":""}>${v}</option>`).join("")}
+        ${DB.types.length?`<optgroup label="Tus tipos">${DB.types.map(t=>`<option value="${t.id}" ${e.type===t.id?"selected":""}>${esc(t.name)}</option>`).join("")}</optgroup>`:""}
+        <option value="__new">＋ Nuevo tipo…</option></select></div>
+      <div class="fld"><label>Número de bocas</label><input id="e_ports" type="number" min="1" max="96" value="${e.ports-(e.sfp||0)}"></div>
+    </div>
+    <div class="grid2" id="w_newtype" style="display:none">
+      <div class="fld"><label>Nombre del tipo nuevo</label><input id="nt_name" placeholder="Router, Centralita, KVM…"></div>
+      <div class="fld"><label>Color</label><input id="nt_col" type="color" value="#ff9f5c" style="height:40px;padding:3px"></div>
+    </div>
+    <div class="grid2">
+      <div class="fld"><label>Bocas SFP aparte (0 = ninguna)</label><input id="e_sfp" type="number" min="0" max="16" value="${e.sfp||0}"></div>
+      <div class="fld"><label>Bloque SFP</label><select id="e_sfpside"><option value="right"${e.sfpSide!=="left"?" selected":""}>A la derecha</option><option value="left"${e.sfpSide==="left"?" selected":""}>A la izquierda</option></select></div>
     </div>
     <div class="grid2">
       <div class="fld"><label>Ancho (de 12 columnas)</label><select id="e_span">${[3,4,5,6,8,12].map(n=>`<option value="${n}" ${(e.span||12)===n?"selected":""}>${n===12?"12 — fila completa":n+" columnas"}</option>`).join("")}</select></div>
@@ -1058,6 +1264,7 @@ function editElement(rack,e){
         <option value="row" ${e.flow==="row"?"selected":""}>Horizontal: 1…24 y luego 25…48</option></select></div>
       <div class="fld"><label>Separar cada N columnas</label><input id="e_group" type="number" min="0" max="24" value="${e.group||0}"></div>
     </div>
+    <label class="chk" id="w_inv"><input type="checkbox" id="e_inv"${e.inv?" checked":""}> Impares abajo y pares arriba (numeración vertical invertida)</label>
     <div class="fld" id="w_align"><label>Alineación de la tira</label><select id="e_palign">
         ${[["left","Izquierda"],["center","Centro"],["right","Derecha"]].map(([k,v])=>`<option value="${k}" ${(e.palign||"left")===k?"selected":""}>${v}</option>`).join("")}</select></div>
     <div class="fld" id="w_preset"><label>Recolocar bocas</label><select id="e_preset">
@@ -1075,17 +1282,38 @@ function editElement(rack,e){
   const sync=()=>{const free=$("#e_pmode").value==="free";
     $("#w_grid").style.display=free?"none":"";$("#w_align").style.display=free?"none":"";
     $("#w_flow").style.display=free?"none":"grid";
+    $("#w_inv").style.display=free||$("#e_flow").value!=="col"?"none":"";
     $("#h_free").style.display=free?"":"none";$("#w_preset").style.display=free?"":"none";};
-  $("#e_pmode").onchange=sync;sync();
-  setTimeout(()=>$("#e_name").focus(),40);
+  $("#e_pmode").onchange=sync;$("#e_flow").onchange=sync;sync();
+  $("#e_type").onchange=()=>{$("#w_newtype").style.display=$("#e_type").value==="__new"?"grid":"none";if($("#e_type").value==="__new")$("#nt_name").focus();};
+  setTimeout(()=>{const n=$("#e_name");if(n)n.focus();},40);
   $("#m_cancel").onclick=closeModal;
   $("#m_ok").onclick=()=>{
     const wasFree=e.pmode==="free";
     e.name=$("#e_name").value.trim()||"SIN NOMBRE";
     e.sub=$("#e_sub").value.trim();
-    e.type=$("#e_type").value;
+    let ty=$("#e_type").value;
+    if(ty==="__new"){
+      const nm=$("#nt_name").value.trim().slice(0,60);
+      if(!nm){toast("Escribe el nombre del tipo nuevo");$("#nt_name").focus();return;}
+      const ex=DB.types.find(t=>t.name.toLowerCase()===nm.toLowerCase());
+      if(ex)ty=ex.id;else{const t={id:nid("t"),name:nm,color:safeColor($("#nt_col").value)};DB.types.push(t);XT[t.id]=t;ty=t.id;}
+    }
+    e.type=ty;
     e.rows=Math.max(1,Math.min(4,+$("#e_rows").value||1));
-    e.ports=Math.max(1,Math.min(96,+$("#e_ports").value||1));
+    const oldM=isNew?0:e.ports-(e.sfp||0),oldS=isNew?0:(e.sfp||0);
+    const newM=Math.max(1,Math.min(96,+$("#e_ports").value||1)),newS=Math.max(0,Math.min(16,+$("#e_sfp").value||0));
+    if(!isNew&&(oldM!==newM||oldS!==newS)){
+      // las SFP van detras de las bocas normales: si cambia cuantas hay, sus cables se mueven con ellas
+      endsHere(x=>{if(x.el!==e.id)return;
+        if(x.port>oldM){const k=x.port-oldM;x.port=k<=newS?newM+k:-1;}
+        else if(x.port>newM)x.port=oldS===0&&x.port<=newM+newS?x.port:-1;});   // 24+4 en una tira -> 24 + 4 SFP: S1..S4 conservan sus cables
+      dropLinksOf([e.id],x=>x.port<0);
+      if(Array.isArray(e.pos)&&oldS===0)e.pos=e.pos.slice(0,newM+newS);
+      else if(Array.isArray(e.pos)){const o=e.pos;e.pos=o.slice(0,Math.min(oldM,newM)).concat(new Array(Math.max(0,newM-oldM)).fill(null),o.slice(oldM,oldM+Math.min(oldS,newS)),new Array(Math.max(0,newS-oldS)).fill(null));}
+    }
+    e.ports=newM+newS;e.sfp=newS;e.sfpSide=$("#e_sfpside").value==="left"?"left":"right";e.inv=$("#e_inv").checked;
+    if(Array.isArray(e.pos)){const dp=defaultPos(e);e.pos=e.pos.slice(0,e.ports).map((q,i)=>q||dp[i]);}
     e.span=+$("#e_span").value||12;
     e.u=Math.max(1,Math.min(20,+$("#e_u").value||1));
     e.h=0;
@@ -1101,7 +1329,7 @@ function editElement(rack,e){
       if(pre)e.pos=presetPos(e.ports,pre);
     }
     if(isNew)rack.elements.push(e);
-    else S.links=S.links.filter(l=>!((l.a.el===e.id&&l.a.port>e.ports)||(l.b.el===e.id&&l.b.port>e.ports)));
+    else dropLinksOf([e.id],x=>x.port>e.ports);
     save();render();closeModal();
   };
 }
@@ -1242,9 +1470,10 @@ function addPortAt(zone,cx,cy){
   if(e.pmode!=="free"){toFree(e);save();render();toast("Caja pasada a disposición libre — vuelve a pulsar para añadir");return;}
   const r=zone.getBoundingClientRect();
   e.pos=e.pos||defaultPos(e);
-  e.ports++;
-  e.pos.push({x:clamp((cx-r.left)/r.width*100),y:clamp((cy-r.top)/r.height*100)});
-  save();render();toast("Boca "+e.ports+" añadida");
+  const m=e.ports-(e.sfp||0),q={x:clamp((cx-r.left)/r.width*100),y:clamp((cy-r.top)/r.height*100)};
+  endsHere(x=>{if(x.el===e.id&&x.port>m)x.port++;});   // la nueva va detras de las normales; las SFP se corren
+  e.pos.splice(m,0,q);e.ports++;
+  save();render();toast("Boca "+(m+1)+" añadida");
 }
 addEventListener("pointermove",ev=>{
   if(marq){
@@ -1442,10 +1671,11 @@ racksEl.addEventListener("contextmenu",ev=>{
   ev.preventDefault();
   const e=elById(pn.dataset.el),port=+pn.dataset.port;
   if(e.ports<=1){toast("Debe quedar al menos una boca");return;}
-  if(!confirm("Eliminar la boca "+port+" de "+e.name+"? Tambien sus cables."))return;
+  if(!confirm("¿Eliminar la "+portName(e,port)+" de "+e.name+"? También sus cables."))return;
   if(e.pmode!=="free")toFree(e);
-  S.links=S.links.filter(l=>!((l.a.el===e.id&&l.a.port===port)||(l.b.el===e.id&&l.b.port===port)));
-  S.links.forEach(l=>{if(l.a.el===e.id&&l.a.port>port)l.a.port--;if(l.b.el===e.id&&l.b.port>port)l.b.port--;});
+  dropLinksOf([e.id],x=>x.port===port);
+  endsHere(x=>{if(x.el===e.id&&x.port>port)x.port--;});
+  if(port>e.ports-(e.sfp||0))e.sfp--;
   if(Array.isArray(e.pos))e.pos.splice(port-1,1);
   e.ports--;sel.clear();save();render();toast("Boca eliminada");
 });
@@ -1476,8 +1706,9 @@ function applyFilter(){
   if(!q){els.forEach(n=>n.classList.remove("dim","hit"));return;}
   els.forEach(n=>{
     const e=elById(n.dataset.el);
-    const labels=S.links.filter(l=>l.a.el===e.id||l.b.el===e.id).map(l=>l.label+" "+l.note).join(" ");
-    const hay=(e.name+" "+e.sub+" "+TYPES[e.type]+" "+labels).toLowerCase().includes(q);
+    const mio=x=>x.el===e.id&&(!x.room||x.room===DB.current);
+    const labels=S.links.concat(xHere()).filter(l=>mio(l.a)||mio(l.b)).map(l=>l.label+" "+l.note).join(" ");
+    const hay=(e.name+" "+e.sub+" "+typeName(e.type)+" "+labels).toLowerCase().includes(q);
     n.classList.toggle("dim",!hay);n.classList.toggle("hit",hay);
   });
 }
@@ -1519,29 +1750,24 @@ function deliver(blob,name,kind,text){
 }
 const stamp=()=>new Date().toISOString().slice(0,10);
 const slug=t=>String(t||"sala").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")||"sala";
+// una fila por cable: origen y destino con su sala (los cables entre salas salen una sola vez)
 function rows(){
-  if(expScope==="all"){
-    let all=[];
-    DB.rooms.forEach(r=>{
-      const st=r.state;
-      const find=id=>{for(const rk of st.racks)for(const e of rk.elements)if(e.id===id)return e;return null;};
-      const rack=id=>{for(const rk of st.racks)for(const e of rk.elements)if(e.id===id)return rk;return null;};
-      st.links.forEach(l=>{
-        const A=find(l.a.el),B=find(l.b.el),RA=rack(l.a.el),RB=rack(l.b.el);
-        all.push([r.name,RA?RA.name:"",A?A.name:"",l.a.port,RB?RB.name:"",B?B.name:"",l.b.port,
-                  (CABLES[l.cable]||CABLES.otro).n,l.label||"",(l.note||"").replace(/\r?\n/g," ")]);
-      });
-    });
-    return all;
-  }
-  return S.links.map(l=>{
-    const A=elById(l.a.el),B=elById(l.b.el),RA=rackOf(l.a.el),RB=rackOf(l.b.el);
-    return [room().name,RA?RA.name:"",A?A.name:"",l.a.port,RB?RB.name:"",B?B.name:"",l.b.port,
-            (CABLES[l.cable]||CABLES.otro).n,l.label||"",(l.note||"").replace(/\r?\n/g," ")];
-  }).sort((x,y)=>(x[0]+x[1]).localeCompare(y[0]+y[1])||x[2]-y[2]);
+  const out=[],salas=expScope==="all"?DB.rooms:[room()],ids=salas.map(r=>r.id);
+  const fila=(ra,a,rb,b,l)=>{const A=endIn(ra,a),B=endIn(rb,b);
+    out.push([ra.name,A.rk?A.rk.name:"",A.e?A.e.name:"",A.e?portLabel(A.e,a.port):a.port,
+              rb.name,B.rk?B.rk.name:"",B.e?B.e.name:"",B.e?portLabel(B.e,b.port):b.port,
+              (CABLES[l.cable]||CABLES.otro).n,l.label||"",(l.note||"").replace(/\r?\n/g," ")]);};
+  salas.forEach(r=>r.state.links.forEach(l=>fila(r,l.a,r,l.b,l)));
+  DB.xlinks.forEach(l=>{
+    if(!ids.includes(l.a.room)&&!ids.includes(l.b.room))return;
+    const ra=DB.rooms.find(r=>r.id===l.a.room),rb=DB.rooms.find(r=>r.id===l.b.room);
+    if(ra&&rb)fila(ra,l.a,rb,l.b,l);
+  });
+  const k=x=>[x[0],x[1],x[2]].join("|");
+  return out.sort((x,y)=>k(x).localeCompare(k(y))||String(x[3]).localeCompare(String(y[3]),undefined,{numeric:true}));
 }
 function expCSV(){
-  const head=["Sala","Rack origen","Equipo origen","Boca","Rack destino","Equipo destino","Boca","Tipo de cable","Etiqueta","Nota"];
+  const head=["Sala origen","Rack origen","Equipo origen","Boca origen","Sala destino","Rack destino","Equipo destino","Boca destino","Tipo de cable","Etiqueta","Nota"];
   const q=v=>{let t=String(v);if(/^[=+\-@\t\r]/.test(t))t="'"+t;return '"'+t.replace(/"/g,'""')+'"';};   // evita formulas al abrirlo en Excel
   const txt="﻿"+[head,...rows()].map(r=>r.map(q).join(";")).join("\r\n");
   deliver(new Blob([txt],{type:"text/csv;charset=utf-8"}),"cableado-"+scopeName()+"-"+stamp()+".csv","txt",txt);
@@ -1586,7 +1812,7 @@ function snapshotSVG(){
         const pr=R(pn),port=+pn.dataset.port,ls=linksOf(e.id,port);
         const fill=ls.length?(CABLES[ls[0].cable]||CABLES.otro).c:"#e2e8f0";
         g+=B(pr,fill,"#475569",1,2.5);
-        if(pr.w>=17)g+=T(pr.x+pr.w/2,pr.y+pr.h/2+3.2,String(port),7.5,ls.length?"#0b1220":"#334155",600,"middle");
+        if(pr.w>=17)g+=T(pr.x+pr.w/2,pr.y+pr.h/2+3.2,pn.textContent,7.5,ls.length?"#0b1220":"#334155",600,"middle");
       });
     });
   });
@@ -1684,23 +1910,24 @@ function expPDF(){
     const salas=expScope==="all"?DB.rooms:[room()];
     const inv=salas.map(sa=>{
       const st=sa.state;
-      const ocup=(st2,e)=>st2.links.filter(l=>(l.a.el===e.id)||(l.b.el===e.id)).length;
+      const ocup=(st2,e)=>st2.links.filter(l=>(l.a.el===e.id)||(l.b.el===e.id)).length
+        +DB.xlinks.filter(l=>(l.a.room===sa.id&&l.a.el===e.id)||(l.b.room===sa.id&&l.b.el===e.id)).length;
       return `<h2 style="border-bottom:3px double #000">SALA: ${esc(sa.name)}</h2>`+st.racks.map(r=>
-        `<h2>${esc(r.name)} — ${r.elements.length} equipos · ${r.elements.reduce((a,e)=>a+(+e.u||1),0)} / ${r.u||42} U</h2>
+        `<h2>${esc(r.name)} — ${r.elements.length} equipos · ${usedU(r)} / ${r.u||42} U</h2>
         <table><tr><th>Equipo</th><th>Tipo</th><th>Modelo / IP</th><th>U</th><th>Bocas</th><th>Bocas con cable</th></tr>
-        ${r.elements.map(e=>`<tr><td>${esc(e.name)}</td><td>${TYPES[e.type]}</td><td>${esc(e.sub)}</td><td>${e.u||1}</td><td>${e.ports}</td><td>${ocup(st,e)}</td></tr>`).join("")}
+        ${r.elements.map(e=>`<tr><td>${esc(e.name)}</td><td>${esc(typeName(e.type))}</td><td>${esc(e.sub)}</td><td>${e.u||1}</td><td>${e.ports}${e.sfp?" ("+e.sfp+" SFP)":""}</td><td>${ocup(st,e)}</td></tr>`).join("")}
         </table>`).join("");
     }).join("");
     const tot=expScope==="all"
       ?{r:DB.rooms.reduce((a,x)=>a+x.state.racks.length,0),
         e:DB.rooms.reduce((a,x)=>a+x.state.racks.reduce((b,y)=>b+y.elements.length,0),0),
-        l:DB.rooms.reduce((a,x)=>a+x.state.links.length,0)}
-      :{r:S.racks.length,e:S.racks.reduce((a,r)=>a+r.elements.length,0),l:S.links.length};
+        l:DB.rooms.reduce((a,x)=>a+x.state.links.length,0)+DB.xlinks.length}
+      :{r:S.racks.length,e:S.racks.reduce((a,r)=>a+r.elements.length,0),l:S.links.length+xHere().length};
     $("#print").innerHTML=`<h1>Documentación de cableado — ${expScope==="all"?DB.rooms.length+" salas":esc(room().name)}</h1>
       <div class="meta">Generado el ${new Date().toLocaleString("es-ES")} · ${expScope==="all"?esc(DB.rooms.map(x=>x.name).join(" · ")):"sala "+esc(room().name)} · ${tot.r} racks · ${tot.e} equipos · ${tot.l} cables</div>
       <img src="${url}">
       <h2>Conexiones (${rows().length})</h2>
-      <table><tr><th>Sala</th><th>Rack</th><th>Equipo</th><th>Boca</th><th>Rack</th><th>Equipo</th><th>Boca</th><th>Cable</th><th>Etiqueta</th><th>Nota</th></tr>
+      <table><tr><th>Sala</th><th>Rack</th><th>Equipo</th><th>Boca</th><th>Sala</th><th>Rack</th><th>Equipo</th><th>Boca</th><th>Cable</th><th>Etiqueta</th><th>Nota</th></tr>
       ${rows().map(r=>"<tr>"+r.map(c=>`<td>${esc(c)}</td>`).join("")+"</tr>").join("")}</table>
       ${inv}`;
     setTimeout(()=>{window.print();toast("Elige \"Guardar como PDF\" en el diálogo");},500);
@@ -1762,8 +1989,9 @@ function importText(f){
     else if(d&&d.racks)rooms=[{id:nid("s"),name:f.name.replace(/\.[a-z]+$/i,"")||"Sala importada",state:d}];  // formato antiguo
     else if(d&&d.state&&d.state.racks)rooms=[d];                                      // una sala suelta
     if(!rooms||!rooms.length)return importError("El archivo “"+f.name+"” es un JSON, pero no tiene el formato de esta aplicación (no encuentro ni salas ni racks).");
-    rooms.forEach(r=>{r.id=safeId(r.id,"s");r.name=str(r.name)||"Sala";r.name=r.name||"Sala";r.state=migrate(r.state||seed());});
-    importDialog(f.name,rooms,d);
+    const nd=prepDB({rooms,types:d&&d.types,xlinks:d&&d.xlinks,current:d&&d.current});
+    if(!nd)return importError("El archivo “"+f.name+"” no tiene salas válidas.");
+    importDialog(f.name,nd);
   };
   rd.readAsText(f);
 }
@@ -1773,7 +2001,8 @@ function importError(msg){
     <div class="foot"><button class="btn acc" id="m_ok">Cerrar</button></div>`;
   veil.classList.add("on");$("#m_ok").onclick=closeModal;
 }
-function importDialog(nombre,rooms,d){
+function importDialog(nombre,nd){
+  const rooms=nd.rooms;
   const res=rooms.map(r=>`<li><b>${esc(r.name)}</b> — ${r.state.racks.length} racks · ${r.state.racks.reduce((a,x)=>a+x.elements.length,0)} equipos · ${r.state.links.length} cables</li>`).join("");
   modal.innerHTML=`<h3>Importar “${esc(nombre)}”</h3>
   <div class="body">
@@ -1790,22 +2019,25 @@ function importDialog(nombre,rooms,d){
   veil.classList.add("on");
   $("#i_cancel").onclick=closeModal;
   $("#i_add").onclick=()=>{
-    rooms.forEach(r=>{r.id=nid("s");DB.rooms.push(r);});
+    const map={};
+    rooms.forEach(r=>{const id=nid("s");map[r.id]=id;r.id=id;DB.rooms.push(r);});
+    nd.types.forEach(t=>{if(!DB.types.some(x=>x.id===t.id)){DB.types.push(t);XT[t.id]=t;}});
+    nd.xlinks.forEach(l=>{l.id=nid("l");l.a.room=map[l.a.room];l.b.room=map[l.b.room];DB.xlinks.push(l);});
     save();closeModal();useRoom(rooms[0].id);
     toast("Añadidas "+rooms.length+" sala(s)");
   };
   $("#i_rep").onclick=()=>{
-    DB={v:2,rooms:rooms,
-        current:(d&&d.current&&rooms.some(r=>r.id===d.current))?d.current:rooms[0].id,
-        theme:(d&&d.theme)||DB.theme,cableMode:(d&&d.cableMode)||DB.cableMode};
-    save();closeModal();useRoom(DB.current);
-    toast("Importadas "+rooms.length+" sala(s)");
+    const snap=snapDB();
+    nd.theme=DB.theme;nd.cableMode=DB.cableMode;nd.expScope=DB.expScope;
+    setDB(nd);save();closeModal();useRoom(DB.current);
+    toastUndo("Importadas "+rooms.length+" sala(s).",snap);
   };
 }
 $("#reset").onclick=()=>{
   if(!confirm('Se borra el contenido de la sala "'+room().name+'" (racks y cables) y vuelve el rack de ejemplo. Las demás salas no se tocan. ¿Seguro?'))return;
   const snap=snapDB();
   const st=migrate(seed());st.theme=DB.theme;st.cableMode=DB.cableMode;
+  DB.xlinks=DB.xlinks.filter(l=>l.a.room!==DB.current&&l.b.room!==DB.current);
   room().state=st;S=st;save();setZoom(1);render();
   toastUndo("Sala reiniciada.",snap);
 };
@@ -1857,7 +2089,7 @@ $("#roomAdd").onclick=()=>{
   </div>
   <div class="foot"><button class="btn" id="m_cancel">Cancelar</button><button class="btn acc" id="m_ok">Crear</button></div>`;
   veil.classList.add("on");
-  setTimeout(()=>{$("#s_name").focus();$("#s_name").select();},40);
+  setTimeout(()=>{const n=$("#s_name");if(n){n.focus();n.select();}},40);
   $("#m_cancel").onclick=closeModal;
   $("#m_ok").onclick=()=>{
     const nm=$("#s_name").value.trim()||("Sala "+(DB.rooms.length+1));
@@ -1876,18 +2108,20 @@ $("#roomEdit").onclick=()=>{
   modal.innerHTML=`<h3>Sala</h3>
   <div class="body">
     <div class="fld"><label>Nombre</label><input id="s_name" value="${esc(r.name)}"></div>
-    <div class="hint">${r.state.racks.length} racks · ${r.state.racks.reduce((a,x)=>a+x.elements.length,0)} equipos · ${r.state.links.length} cables</div>
+    <div class="hint">${r.state.racks.length} racks · ${r.state.racks.reduce((a,x)=>a+x.elements.length,0)} equipos · ${r.state.links.length} cables${xHere().length?" · "+xHere().length+" cables a otras salas":""}</div>
   </div>
   <div class="foot">
     <button class="btn danger" id="s_del">Eliminar sala</button>
     <button class="btn" id="s_dup">Duplicar</button>
+    <button class="btn" id="s_types">Tipos de equipo…</button>
     <span style="flex:1"></span>
     <button class="btn" id="m_cancel">Cancelar</button><button class="btn acc" id="m_ok">Guardar</button>
   </div>`;
   veil.classList.add("on");
-  setTimeout(()=>$("#s_name").focus(),40);
+  setTimeout(()=>{const n=$("#s_name");if(n)n.focus();},40);
   $("#m_cancel").onclick=closeModal;
   $("#m_ok").onclick=()=>{r.name=$("#s_name").value.trim()||r.name;save();fillRooms();closeModal();};
+  $("#s_types").onclick=editTypes;
   $("#s_dup").onclick=()=>{
     const c=newRoom(r.name+" (copia)",JSON.parse(JSON.stringify(r.state)));
     DB.rooms.push(c);save();closeModal();useRoom(c.id);toast("Sala duplicada");
@@ -1897,12 +2131,81 @@ $("#roomEdit").onclick=()=>{
     if(!confirm('¿Eliminar la sala "'+r.name+'" con sus '+r.state.racks.length+' racks y '+r.state.links.length+' cables?\n\nTendrás 30 segundos para deshacerlo.'))return;
     const snap=snapDB();
     DB.rooms=DB.rooms.filter(x=>x.id!==r.id);
+    DB.xlinks=DB.xlinks.filter(l=>l.a.room!==r.id&&l.b.room!==r.id);
     const sig=DB.rooms[0];
     DB.current=sig.id;S=sig.state;              // primero cambiar de sala, luego guardar
     save();closeModal();useRoom(sig.id);
     toastUndo('Sala "'+r.name+'" eliminada.',snap);
   };
 };
+
+/* ---------- #2 nuevo rack, vacio o copiando otro ---------- */
+function newRack(){
+  const opts=[];DB.rooms.forEach(r=>r.state.racks.forEach(k=>opts.push({r,k})));
+  modal.innerHTML=`<h3>Nuevo rack</h3>
+  <div class="body">
+    <div class="fld"><label>Empezar</label><select id="k_base"><option value="">Vacío</option>
+      ${opts.map((o,i)=>`<option value="${i}">Copiando ${esc(o.k.name)}${DB.rooms.length>1?" · sala "+esc(o.r.name):""} (${o.k.elements.length} equipos)</option>`).join("")}</select></div>
+    <div class="fld"><label>Nombre</label><input id="k_name" value="RACK NUEVO"></div>
+    <div class="fld"><label>Altura en U</label><input id="k_u" type="number" min="1" max="60" value="42"></div>
+    <label class="chk" id="k_lw"><input type="checkbox" id="k_links" checked> Copiar también los cables entre los equipos de ese rack</label>
+  </div>
+  <div class="foot"><button class="btn" id="m_cancel">Cancelar</button><button class="btn acc" id="m_ok">Crear</button></div>`;
+  veil.classList.add("on");
+  const sync=()=>{const o=opts[$("#k_base").value];$("#k_lw").style.display=o?"":"none";
+    if(o){$("#k_u").value=o.k.u||42;$("#k_name").value=o.k.name+" (copia)";}};
+  $("#k_base").onchange=sync;sync();
+  setTimeout(()=>{const n=$("#k_name");if(n){n.focus();n.select();}},40);
+  $("#m_cancel").onclick=closeModal;
+  $("#m_ok").onclick=()=>{
+    const o=opts[$("#k_base").value];
+    const nk={id:nid("r"),name:$("#k_name").value.trim()||"RACK NUEVO",u:Math.max(1,Math.min(60,+$("#k_u").value||42)),elements:[]};
+    let nl=0;
+    if(o){
+      const map={};
+      nk.ubot=!!o.k.ubot;
+      nk.elements=o.k.elements.map(e=>{const c=JSON.parse(JSON.stringify(e));c.id=nid("e");map[e.id]=c.id;return c;});
+      if($("#k_links").checked)o.r.state.links.forEach(l=>{
+        if(!map[l.a.el]||!map[l.b.el])return;
+        S.links.push({id:nid("l"),a:{el:map[l.a.el],port:l.a.port},b:{el:map[l.b.el],port:l.b.port},cable:l.cable,label:l.label,note:l.note});nl++;
+      });
+    }
+    S.racks.push(nk);save();closeModal();render();
+    toast(o?`Rack copiado: ${nk.elements.length} equipos${nl?" y "+nl+" cables":""}`:"Rack creado");
+  };
+}
+
+/* ---------- #3 tipos de equipo propios (comunes a todas las salas) ---------- */
+function editTypes(){
+  let w=DB.types.map(t=>({...t}));
+  const uses=id=>DB.rooms.reduce((a,r)=>a+r.state.racks.reduce((b,k)=>b+k.elements.filter(e=>e.type===id).length,0),0);
+  const leer=()=>{$$("#modal .tlist .tr").forEach(n=>{const t=w.find(x=>x.id===n.dataset.t);if(!t)return;
+    t.name=n.querySelector("input[type=text]").value.trim().slice(0,60)||t.name;t.color=safeColor(n.querySelector("input[type=color]").value);});};
+  const pinta=()=>{
+    modal.innerHTML=`<h3>Tipos de equipo propios</h3>
+    <div class="body">
+      <div class="hint">Además de los de serie (patch panel, switch, servidor, NAS, otro, hueco libre) puedes crear los tuyos, con su color. Sirven para todas las salas.</div>
+      <div class="tlist">${w.map(t=>`<div class="tr" data-t="${t.id}"><input type="color" value="${t.color}"><input type="text" value="${esc(t.name)}">
+        <span class="hint">${uses(t.id)} equipos</span><button class="btn sm danger" data-tdel="${t.id}" title="Eliminar">✕</button></div>`).join("")||'<div class="hint">Todavía no hay ninguno.</div>'}</div>
+      <div class="tr"><input type="color" id="tn_col" value="#ff9f5c"><input type="text" id="tn_name" placeholder="Router, Centralita, KVM…"><button class="btn sm" id="tn_add">＋ Añadir</button></div>
+    </div>
+    <div class="foot"><button class="btn" id="m_cancel">Cancelar</button><button class="btn acc" id="m_ok">Guardar</button></div>`;
+    $("#tn_add").onclick=()=>{leer();const nm=$("#tn_name").value.trim().slice(0,60);if(!nm){$("#tn_name").focus();return;}
+      w.push({id:nid("t"),name:nm,color:safeColor($("#tn_col").value)});pinta();};
+    $("#modal .tlist").onclick=ev=>{const b=ev.target.closest("[data-tdel]");if(!b)return;leer();
+      const n=uses(b.dataset.tdel);if(n&&!confirm(n+" equipos tienen este tipo y pasarán a «Otro». ¿Eliminarlo?"))return;
+      w=w.filter(t=>t.id!==b.dataset.tdel);pinta();};
+    $("#m_cancel").onclick=closeModal;
+    $("#m_ok").onclick=()=>{
+      leer();
+      const ids=w.map(t=>t.id);
+      DB.rooms.forEach(r=>r.state.racks.forEach(k=>k.elements.forEach(e=>{if(!has(TYPES,e.type)&&!ids.includes(e.type))e.type="otro";})));
+      DB.types=w;XT=Object.create(null);w.forEach(t=>XT[t.id]=t);
+      save();closeModal();render();toast("Tipos guardados");
+    };
+  };
+  veil.classList.add("on");pinta();
+}
 
 /* ---------- demostración guiada ---------- */
 const TOUR=[
@@ -1922,7 +2225,7 @@ const TOUR=[
   f:()=>{const el=racksEl.querySelector('.rack [data-free="1"]');
      if(el){const d=el.getBoundingClientRect().top-stage.getBoundingClientRect().top;
        stage.scrollLeft=0;stage.scrollTop+=d-300;}}},
- {t:"26 U libres: ya sabes si te cabe el servidor nuevo sin bajar al CPD",
+ {t:"Las U libres se cuentan solas, huecos reservados incluidos: ya sabes si te cabe el servidor nuevo",
   f:()=>{}},
  {t:"Las bocas se colocan a mano para que el dibujo sea igual que tu rack",
   f:()=>{stage.scrollTop=0;setMove(true);const e=S.racks[0].elements[0];sel.clear();[1,2,3,4].forEach(p=>sel.add(e.id+"|"+p));markSel();}},
@@ -1992,12 +2295,19 @@ document.addEventListener("click",ev=>{
   if(b.id==="warnLink")linkFile();else expJSON();
 });
 addEventListener("beforeunload",ev=>{
-  if(!lsOK&&!fileHandle){ev.preventDefault();ev.returnValue="";}
+  if((!SRV&&!lsOK&&!fileHandle)||(SRV&&(srvTimer||srvBusy))){ev.preventDefault();ev.returnValue="";}
 });
 
 /* ---------- versión y novedades ---------- */
-const VERSION="1.2";
+const VERSION="2.0";
 const NEWS=[
+ {v:"2.0",d:"9 de octubre de 2026",items:[
+   "Cables entre salas: pulsa «Conectar esta boca…», cambia de sala en el desplegable y elige el destino. La boca lleva la marca ↗ y desde su ficha saltas a la otra sala.",
+   "Trabajo en equipo: si varias personas usan el mismo archivo en una carpeta de red, cada una ve los cambios de las demás y se avisa si dos guardan a la vez. Y hay un modo servidor opcional para Apache con PHP (rackscope.php).",
+   "Bocas SFP aparte con su propia numeración (S1, S2…), a la derecha o a la izquierda, y numeración invertida: impares abajo y pares arriba.",
+   "Tipos de equipo propios, con su nombre y su color (Sala ⋯ › Tipos de equipo, o «＋ Nuevo tipo…» en la ficha del equipo).",
+   "«＋ rack» puede copiar cualquier rack existente, de esta sala o de otra, con sus cables internos.",
+   "Los huecos libres reservados ya no cuentan como U ocupadas."]},
  {v:"1.2",d:"2 de octubre de 2026",items:[
    "Seguridad: los archivos JSON que importas o abres se revisan a fondo antes de usarlos. Un archivo manipulado ya no puede ejecutar nada en la página.",
    "La página tiene bloqueada cualquier conexión a Internet: que tus datos no salen de tu equipo ahora lo garantiza el propio navegador.",
@@ -2033,7 +2343,7 @@ function checkNews(hadData){
 }
 let hadData=false;try{hadData=!!localStorage.getItem(KEY);}catch(e){}
 
-DB=load();
+setDB(load());
 S=room().state;
 setScope(DB.expScope==="all"?"all":"room");S.theme=DB.theme;S.cableMode=DB.cableMode;
 fillRooms();
@@ -2044,7 +2354,7 @@ setZoom(S.zoom||1);
 render();
 try{localStorage.setItem(KEY+".test","1");localStorage.removeItem(KEY+".test");}catch(e){lsOK=false;}
 updateSaveUI();
-restoreHandle();
+if(SRV){$("#linkFile").style.display="none";srvStart();}else restoreHandle();
 checkNews(hadData);
 </script>
 </body>

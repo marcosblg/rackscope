@@ -12,7 +12,7 @@ Every device is defined with the port count it actually has, from 1 to 96: 12, 1
 
 ### 👉 [Try it right now in your browser](https://marcosblg.github.io/rackscope/)
 
-> 🆕 **v1.2** (October 2, 2026): security update. Imported files are thoroughly validated and the page blocks every connection to the Internet. [See the full changelog](CHANGELOG.md#whats-new-in-rackscope)
+> 🆕 **v2.0** (October 9, 2026): cables between rooms, teamwork (shared network folder or Apache server), SFP ports with their own numbering, custom device types and rack copying. All requested by you in the issues. [See the full changelog](CHANGELOG.md#whats-new-in-rackscope)
 
 Nothing to install or download: the link opens the tool with a sample room. Hit **▶ Ver demo** for the guided tour.
 
@@ -33,17 +33,25 @@ Nothing to install or download: the link opens the tool with a sample room. Hit 
 
 **Draw the rack as it actually is**
 - Every device with its real port count, as a strip, a grid, or placed **by hand** wherever you want.
-- Horizontal numbering (1…24) or vertical (1-2 / 3-4, like real switches), with gaps between blocks.
+- Horizontal numbering (1…24) or vertical (1-2 / 3-4, like real switches), with gaps between blocks and an odd-bottom / even-top option.
+- **Separate SFP ports** with their own numbering (S1, S2…), to the right or left of the regular block.
+- **Custom device types** (router, PBX, KVM…) with their own name and color.
 - Variable width and height: 1U bars, 2U servers, square arrays, several boxes side by side in one row.
 - Tools to line ports up: multi-select with Ctrl/Shift, marquee selection, group drag, align, distribute, pack, sort by number and arrow-key nudging.
 
 **Know what fits**
 - A U ruler down the left of each rack, showing the range each device occupies.
 - Free U are drawn and counted: *"18 / 42 U · 24 U free"*.
-- **Blank panel** elements to reserve space exactly where it really is.
+- **Blank panel** elements to reserve space exactly where it really is; they count as free U.
+- **＋ rack** creates an empty rack or **copies any existing one**, from this room or another, including its internal cables.
 
 **Multiple rooms**
-- A room selector: each one with its own racks, devices and cables, fully independent.
+- A room selector: each one with its own racks, devices and cables.
+- **Cables between rooms**: hit *Conectar esta boca…* (connect this port), switch rooms in the selector and pick the destination. The port shows a ↗ mark and its card takes you to the other room.
+
+**Teamwork**
+- If several people use the same `.json` in a **shared network folder**, everyone sees the others' changes within seconds, and if two people save at once the app warns instead of overwriting.
+- Optional **server mode** for Apache with PHP: copy `index.html` and `rackscope.php` to the server and the whole team works on the same plan from their browsers. See **[SERVIDOR.md](SERVIDOR.md)** (in Spanish).
 
 **Get the documentation out**
 - **PNG** or **SVG** image of the whole layout.
@@ -61,7 +69,7 @@ Nothing to install or download: the link opens the tool with a sample room. Hit 
 
 ## Where the data lives
 
-On your machine and nowhere else. No server, no account, not a single network request. It is stored in the browser's local storage and, if you link a file, in that `.json` you chose.
+In server mode, on your server (see [SERVIDOR.md](SERVIDOR.md)). Otherwise, on your machine and nowhere else. No server, no account, not a single network request. It is stored in the browser's local storage and, if you link a file, in that `.json` you chose.
 
 One important caveat: browser storage is tied to the file's path. Move the HTML or download another copy into a different folder and that storage does not follow. So link a file, or export the JSON now and then. The app shows a red warning if it detects the browser will not let it save.
 
