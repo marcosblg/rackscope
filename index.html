@@ -66,7 +66,9 @@ html[data-theme="light"] .btn.danger:hover{background:#ffe4e8;color:#8d1524}
 .zoomwrap{display:flex;align-items:center;gap:2px;background:var(--panel2);border:1px solid var(--line2);border-radius:8px;padding:2px;flex:0 0 auto}
 .zoomwrap button{background:none;border:0;color:var(--tx2);padding:5px 9px;border-radius:6px;font-size:14px;line-height:1}
 .zoomwrap button:hover{background:var(--panel3);color:var(--tx)}
-.zoomwrap span{font-size:11px;color:var(--tx3);width:40px;text-align:center;font-family:var(--m)}
+.zoomwrap input{font-size:11px;color:var(--tx3);width:42px;text-align:center;font-family:var(--m);background:none;border:0;border-radius:5px;padding:4px 0;outline:none}
+.zoomwrap input:hover,.zoomwrap input:focus{background:var(--bg2);color:var(--tx)}
+.zoomwrap button:disabled{opacity:.35;background:none}
 .menuwrap{position:relative;flex:0 0 auto}
 .menu{position:fixed;background:var(--panel);border:1px solid var(--line2);border-radius:10px;box-shadow:var(--sh);padding:5px;min-width:250px;display:none;z-index:70}
 .menu.on{display:block}
@@ -77,6 +79,8 @@ html[data-theme="light"] .btn.danger:hover{background:#ffe4e8;color:#8d1524}
 .menu .scope{display:flex;gap:4px;padding:4px}
 .menu .scope button{flex:1;text-align:center;font-size:11.5px;padding:6px 4px;border:1px solid var(--line2);border-radius:6px;color:var(--tx2)}
 .menu .scope button.on{background:var(--accbg);border-color:var(--accbd);color:var(--acc)}
+.menu .cabf{display:block;padding:4px 6px 2px;font-size:10.5px;color:var(--tx3);font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+.menu .cabf select{display:block;width:100%;margin-top:5px;background:var(--bg2);border:1.5px solid var(--line2);border-radius:7px;padding:6px 8px;font-size:12px;text-transform:none;letter-spacing:0;font-weight:600}
 
 /* ---------- lienzo ---------- */
 #stage{position:absolute;inset:54px 0 0 0;overflow:auto;background:radial-gradient(1000px 600px at 20% -10%,var(--bg2),transparent 60%),var(--bg)}
@@ -90,6 +94,8 @@ body.mv #mvbar{display:flex}
 #racks{position:relative;z-index:1;display:flex;align-items:flex-start;gap:26px}
 
 .rack{background:var(--bg2);border:2px solid var(--line);border-radius:14px;width:max-content;min-width:340px;box-shadow:var(--sh);position:relative}
+.rgrip{position:absolute;top:44px;bottom:10px;right:-7px;width:12px;cursor:ew-resize;z-index:6;border-radius:6px}
+.rgrip:hover,.rgrip.on{background:var(--acc);opacity:.6}
 .rack-head{display:flex;align-items:center;gap:8px;padding:10px 13px;background:var(--panel);border-bottom:2px solid var(--line);border-radius:11px 11px 0 0;position:sticky;top:0;z-index:5}
 .rack-head b{font-size:13.5px;letter-spacing:1.6px;text-transform:uppercase;color:var(--gold)}
 .rack-head .cnt{font-size:11px;color:var(--tx3);font-family:var(--m)}
@@ -123,6 +129,10 @@ body.mv #mvbar{display:flex}
 .el-name{font-size:12px;font-weight:700;letter-spacing:.3px;white-space:nowrap}
 .el-sub{font-size:10.5px;color:var(--tx2);font-family:var(--m);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1}
 .el-tools{display:flex;gap:3px;opacity:0;transition:.12s}
+.el.part .el-head{contain:inline-size;overflow:hidden}
+.el.part .el-name{overflow:hidden;text-overflow:ellipsis;min-width:0;flex:0 1 auto}
+.el.part .badge{white-space:nowrap;flex:0 0 auto}
+.el.part .el-sub{min-width:0;flex:1 1 0}
 .el:hover .el-tools{opacity:1}
 .el-tools button{background:var(--panel2);border:1px solid var(--line2);color:var(--tx2);width:20px;height:20px;border-radius:5px;font-size:10px;line-height:1;padding:0;display:grid;place-items:center}
 .el-tools button:hover{background:var(--acc);color:#fff;border-color:var(--acc)}
@@ -208,7 +218,7 @@ body.mv .port:active{cursor:grabbing}
 .fld input:focus,.fld select:focus,.fld textarea:focus{border-color:var(--acc);box-shadow:0 0 0 3px #59a9ff33}
 .fld textarea{resize:vertical;min-height:66px;line-height:1.45}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.modal .foot{padding:12px 16px;border-top:1px solid var(--line2);display:flex;gap:8px;justify-content:flex-end;background:var(--panel2)}
+.modal .foot{padding:12px 16px;border-top:1px solid var(--line2);display:flex;gap:8px;justify-content:flex-end;background:var(--panel2);flex-wrap:wrap}
 .hint{font-size:11.5px;color:var(--tx3);line-height:1.5}
 
 /* ---------- cables ---------- */
@@ -275,7 +285,12 @@ label.chk{display:flex;gap:8px;align-items:center;font-size:12.5px;color:var(--t
   #print{display:block;font-family:var(--f);color:#000}
   #print h1{font-size:18px;margin:0 0 2px}
   #print .meta{font-size:11px;color:#555;margin-bottom:14px}
-  #print img{width:100%;margin-bottom:18px;page-break-after:always}
+  @page rk{size:A4 portrait;margin:12mm}
+  #print .plano{page-break-after:always;text-align:center}
+  #print .plano.rk{page:rk}
+  #print .plano h2{text-align:left}
+  #print .plano img{max-width:100%;max-height:165mm;width:auto;height:auto}
+  #print .plano.rk img{max-height:250mm}
   #print h2{font-size:13px;margin:16px 0 6px;border-bottom:2px solid #000;padding-bottom:3px}
   #print table{width:100%;border-collapse:collapse;font-size:10px}
   #print th{background:#eee;text-align:left;border:1px solid #999;padding:4px 5px}
@@ -306,7 +321,8 @@ label.chk{display:flex;gap:8px;align-items:center;font-size:12.5px;color:var(--t
     <button data-cm="sel">Solo el elegido</button>
     <button data-cm="all">Todos</button>
   </div>
-  <div class="zoomwrap"><button id="zo">−</button><span id="zl">100%</span><button id="zi">+</button><button id="zr" title="Ajustar a la ventana">⤢</button></div>
+  <div class="zoomwrap"><button id="zo">−</button><input id="zl" value="100%" title="Escribe el zoom que quieras (35–160 %)" aria-label="Zoom"><button id="zi">+</button><button id="zr" title="Ajustar a la ventana">⤢</button></div>
+  <div class="zoomwrap"><button id="undo" title="Deshacer (Ctrl+Z)" disabled>↶</button><button id="redo" title="Rehacer (Ctrl+Y)" disabled>↷</button></div>
   <button class="btn" id="theme" title="Cambiar tema">🌙</button>
   <div class="sep"></div>
   <button class="btn" id="tour" title="Demostración automática">▶ Ver demo</button>
@@ -318,6 +334,14 @@ label.chk{display:flex;gap:8px;align-items:center;font-size:12.5px;color:var(--t
         <button data-scope="room">Solo esta sala</button>
         <button data-scope="all">Todas las salas</button>
       </div>
+      <label class="cabf">Cables en las imágenes y el PDF<select id="expCab">
+        <option value="all">Todos</option>
+        <option value="none">Ninguno (solo los equipos)</option>
+        <option value="rack">Solo entre racks distintos</option>
+        <option value="xroom">Solo los que van a otras salas</option>
+        <option value="fibra">Solo fibra</option>
+        <option value="cobre">Solo cobre</option>
+      </select></label>
       <hr>
       <button data-exp="png">🖼 Imagen PNG<small>Foto del plano completo tal y como se ve</small></button>
       <button data-exp="pdf">📄 PDF / Imprimir<small>Plano + listado de cables (elige "Guardar como PDF")</small></button>
@@ -466,7 +490,7 @@ function prepDB(d){
     return a&&b&&a.room!==b.room?{id:safeId(l.id,"l"),a,b,cable:has(CABLES,l.cable)?l.cable:"otro",label:str(l.label),note:str(l.note)}:null;}).filter(Boolean);
   return {v:3,current:rooms.some(r=>r.id===d.current)?d.current:rooms[0].id,
     theme:d.theme==="light"?"light":"dark",cableMode:pick(d.cableMode,["none","sel","all"],"sel"),
-    expScope:d.expScope==="all"?"all":"room",rooms,types,xlinks};
+    expScope:d.expScope==="all"?"all":"room",expCab:pick(d.expCab,["all","none","rack","xroom","fibra","cobre"],"all"),rooms,types,xlinks};
 }
 function load(){
   try{const raw=localStorage.getItem(KEY);if(raw){const d=prepDB(JSON.parse(raw));if(d)return d;}}catch(e){}
@@ -519,7 +543,7 @@ function migrate(d,xt){
   d.cableMode=pick(d.cableMode,["none","sel","all"],"sel");
   const emap=Object.create(null),nports=Object.create(null);
   d.racks.forEach(r=>{
-    r.id=safeId(r.id,"r");r.name=str(r.name)||"RACK";r.u=int(r.u,1,60,42);r.ubot=!!r.ubot;
+    r.id=safeId(r.id,"r");r.name=str(r.name)||"RACK";r.u=int(r.u,1,60,42);r.ubot=!!r.ubot;r.w=int(r.w,0,4000,0);
     r.elements.forEach(e=>{
       const old=e.id;e.id=safeId(e.id,"e");if(typeof old==="string")emap[old]=e.id;emap[e.id]=e.id;
       e.name=str(e.name);e.sub=str(e.sub);e.type=has(TYPES,e.type)||has(xt,e.type)?e.type:"otro";
@@ -552,8 +576,10 @@ let lsOK=true,fileHandle=null,fileName="",wTimer=null,lastSave=0;
 function save(){
   // S es siempre el mismo objeto que room().state, no hay que volcarlo (hacerlo pisaba salas ajenas)
   DB.theme=S.theme;DB.cableMode=S.cableMode;
-  try{localStorage.setItem(KEY,JSON.stringify(DB));lsOK=true;lastSave=Date.now();}
+  const full=JSON.stringify(DB);
+  try{localStorage.setItem(KEY,full);lsOK=true;lastSave=Date.now();}
   catch(e){lsOK=false;}
+  histTrack(full);
   if(!quiet){
     if(SRV){clearTimeout(srvTimer);srvTimer=setTimeout(srvPush,600);}
     else if(fileHandle){clearTimeout(wTimer);wTimer=setTimeout(writeFile,600);}
@@ -604,6 +630,7 @@ function applyRemote(nd,msg){
   if(DB.rooms.some(r=>r.id===keep.current))DB.current=keep.current;
   room().state.zoom=keep.zoom;
   quiet=true;try{setPending(null);useRoom(DB.current);}finally{quiet=false;}
+  histReset();                                     // lo de otro no se deshace desde aqui
   toast(msg);
 }
 function conflictModal(donde,nd,theirs,mine){
@@ -828,7 +855,8 @@ function render(){
         <button class="btn sm" data-act="rright" ${ri===S.racks.length-1?"disabled":""}>▶</button>
         <button class="btn sm danger" data-act="rdel">✕</button>
       </span></div>
-      <div class="rack-body"></div>`;
+      <div class="rack-body"></div><div class="rgrip" title="Arrastra para cambiar el ancho · doble clic: ancho automático"></div>`;
+    if(r.w)d.style.width=r.w+"px";
     const body=d.querySelector(".rack-body");
     body.innerHTML='<div class="urail"></div><div class="rack-grid"></div>';
     const grid=body.querySelector(".rack-grid");
@@ -838,6 +866,7 @@ function render(){
     const add=document.createElement("button");add.className="addel";add.textContent="＋ añadir equipo";
     add.onclick=()=>editElement(r,null);grid.appendChild(add);
     racksEl.appendChild(d);
+    if(r.w)d.style.minWidth=rackMin(d)+"px";          // nunca mas estrecho que sus filas de bocas
   });
   const add=document.createElement("button");add.className="addel";add.id="addrack";add.textContent="＋ rack";
   add.style.minHeight="60px";add.style.padding="16px 20px";
@@ -902,6 +931,7 @@ function elNode(e,i,r){
   d.className="el t-"+(has(TYPES,e.type)?e.type:"custom");d.dataset.el=e.id;
   if(XT[e.type])d.style.setProperty("--tc",XT[e.type].color);
   d.style.gridColumn="span "+(e.span||12);
+  if((e.span||12)<12)d.classList.add("part");      // su texto no ensancha el rack
   d.style.minHeight=(Math.max(1,+e.u||1)*UPX)+"px";
   if(e.type==="hueco"){                       // caja que representa un hueco vacio del rack
     d.classList.add("t-hueco");
@@ -916,7 +946,7 @@ function elNode(e,i,r){
   const free=e.pmode==="free";
   const cols=Math.ceil(e.ports/(e.rows||1));
   d.innerHTML=`<div class="el-head">
-      <span class="el-name">${esc(e.name)}</span>
+      <span class="el-name" title="${esc(e.name)}">${esc(e.name)}</span>
       <span class="badge">${esc(typeName(e.type))}</span>
       <span class="ubadge" title="Altura en U">${e.u||1}U</span>
       <span class="el-sub">${esc(e.sub)}</span>
@@ -1210,6 +1240,12 @@ function editRack(r){
       <option value="0"${r.ubot?"":" selected"}>1 arriba (sigue el orden de la lista)</option>
       <option value="1"${r.ubot?" selected":""}>1 abajo (como el rack real)</option>
     </select></div>
+    <div class="fld"><label>Ancho en pantalla</label><select id="r_w">
+      <option value="keep">${r.w?"Fijo: "+r.w+" px (el que tiene ahora)":"Automático (según su contenido)"}</option>
+      ${r.w?'<option value="auto">Automático (según su contenido)</option>':""}
+      <option value="all">Igual para todos los racks de la sala (el de este)</option>
+      <option value="allauto">Automático en todos los racks de la sala</option>
+    </select><div class="hint" style="margin-top:5px">También puedes arrastrar el borde derecho del rack.</div></div>
     <div class="hint">Ocupadas ahora mismo: <b>${usadas} U</b> entre ${r.elements.length} equipos. La U de cada equipo se define en su propia ficha (✎); los huecos reservados cuentan como libres.</div>
   </div>
   <div class="foot"><button class="btn" id="m_cancel">Cancelar</button><button class="btn acc" id="m_ok">Guardar</button></div>`;
@@ -1220,6 +1256,10 @@ function editRack(r){
     r.name=$("#r_name").value.trim()||r.name;
     r.u=Math.max(1,Math.min(60,+$("#r_u").value||42));
     r.ubot=$("#r_ubot").value==="1";
+    const w=$("#r_w").value,rn=racksEl.querySelector(`.rack[data-rack="${r.id}"]`);
+    if(w==="auto")r.w=0;
+    if(w==="all"){const px=r.w||(rn?rn.offsetWidth:0);S.racks.forEach(x=>x.w=px);}
+    if(w==="allauto")S.racks.forEach(x=>x.w=0);
     save();render();closeModal();
   };
 }
@@ -1418,7 +1458,7 @@ function freeAll(keys){
   const ids=[...new Set(keys.map(k=>k.split("|")[0]))];
   let ch=false;
   ids.forEach(id=>{const e=elById(id);if(e&&e.pmode!=="free"){toFree(e);ch=true;}});
-  if(ch){save();render();}
+  if(ch)render();                                  // sin guardar: va en el mismo paso de deshacer que lo que venga
 }
 function startDrag(keys,ev){
   freeAll(keys);
@@ -1527,7 +1567,100 @@ addEventListener("keydown",ev=>{
     e.pos[i]={x:clamp(e.pos[i].x+d[0]*st),y:clamp(e.pos[i].y+d[1]*st)};});
   save();render();
 });
-// alinear / repartir la seleccion (dentro de cada equipo)
+// alinear / repartir la seleccion (dentro de cada equipo). Nada se solapa: si no cabe en una
+// linea se parte en varias filas y, si hace falta, la caja crece en U.
+const pc=v=>Math.max(1,Math.min(99,Math.round(v*100)/100));
+function zoneOf(e,i){                                  // medidas en px sin zoom (offset* no lo aplica)
+  const n0=portNode(e.id,i+1),zn=n0&&n0.parentElement;
+  return {pw:(n0?n0.offsetWidth:21)+5,ph:(n0?n0.offsetHeight:21)+5,zw:(zn&&zn.offsetWidth)||300,zh:(zn&&zn.offsetHeight)||40};
+}
+function growTo(e,zh,need){                            // alto de zona necesario -> U de la caja
+  if(need<=zh)return zh;
+  e.u=Math.min(20,Math.max(+e.u||1,Math.ceil((need+38)/UPX)));
+  return Math.max(zh,e.u*UPX-38);
+}
+// coloca las bocas de "order" (ya en orden de lectura) en rejilla.
+// dir "h": filas de izquierda a derecha; dir "v": columnas de arriba abajo (per = bocas por columna)
+function gridPlace(e,order,o){
+  const n=order.length;let {pw,ph,zw,zh}=zoneOf(e,order[0]);
+  const fitW=Math.max(1,Math.floor((zw-pw)/pw)+1);
+  let per,lines;
+  if(o.dir==="h"){per=Math.min(n,fitW);lines=Math.ceil(n/per);zh=growTo(e,zh,lines*ph+4);}
+  else{
+    per=o.per||Math.max(1,Math.floor((zh-ph)/ph)+1);
+    lines=Math.ceil(n/per);
+    while(lines>fitW&&per<n){per+=o.per||1;lines=Math.ceil(n/per);}   // no caben las columnas: mas bocas por columna
+    per=Math.min(per,n);
+    zh=growTo(e,zh,per*ph+4);
+  }
+  const across=o.dir==="h"?per:lines;                  // elementos por fila horizontal
+  const sx=o.spread&&across>1?Math.max(pw,(zw-pw)/(across-1)):pw;
+  const rowsN=o.dir==="h"?lines:per;
+  const lim=(v,sz,step,cnt,tot)=>Math.max(sz/2,Math.min(v,tot-sz/2-step*(cnt-1)));
+  const x0=o.spread?pw/2:lim(o.x0!=null?o.x0:pw/2,pw,sx,across,zw);
+  const y0=lim(o.y0!=null?o.y0:ph/2,ph,ph,rowsN,zh);
+  order.forEach((i,k)=>{
+    const a=k%per,b=Math.floor(k/per);
+    const cx=o.dir==="h"?a:b, cy=o.dir==="h"?b:a;
+    e.pos[i]={x:pc((x0+cx*sx)/zw*100),y:pc((y0+cy*ph)/zh*100)};
+  });
+}
+// reparte "vals" (centros en px) a lo largo de [lo,hi] sin que se pisen; null si no caben
+function noOverlap(vals,size,lo,hi){
+  const v=vals.slice();
+  for(let k=1;k<v.length;k++)v[k]=Math.max(v[k],v[k-1]+size);
+  if(v[v.length-1]>hi){v[v.length-1]=hi;for(let k=v.length-2;k>=0;k--)v[k]=Math.min(v[k],v[k+1]-size);}
+  return v[0]<lo-.5?null:v;
+}
+// agrupa en lineas (filas si ax="x") por cercania en el otro eje
+function linesOf(e,idx,ax,tol){
+  const ot=ax==="x"?"y":"x",arr=idx.slice().sort((a,b)=>e.pos[a][ot]-e.pos[b][ot]),out=[];
+  arr.forEach(i=>{const l=out[out.length-1];
+    if(l&&Math.abs(e.pos[i][ot]-e.pos[l[l.length-1]][ot])<=tol)l.push(i);else out.push([i]);});
+  out.forEach(l=>l.sort((a,b)=>e.pos[a][ax]-e.pos[b][ax]));
+  return out;
+}
+function arrange(e,idx,mode){
+  let {pw,ph,zw,zh}=zoneOf(e,idx[0]);
+  const P=i=>({x:e.pos[i].x*zw/100,y:e.pos[i].y*zh/100});
+  const xs=idx.map(i=>P(i).x),ys=idx.map(i=>P(i).y);
+  const x0=Math.min.apply(null,xs),y0=Math.min.apply(null,ys);
+  const spanX=Math.max.apply(null,xs)-x0,spanY=Math.max.apply(null,ys)-y0;
+  if(mode==="pack"){                                   // juntas y en linea, en el eje en que ya estaban
+    const ax=spanX>=spanY?"x":"y",ot=ax==="x"?"y":"x";
+    const or=idx.slice().sort((a,b)=>(e.pos[a][ax]-e.pos[b][ax])||(e.pos[a][ot]-e.pos[b][ot]));
+    gridPlace(e,or,{dir:ax==="x"?"h":"v",x0,y0});
+    return;
+  }
+  if(mode==="x"||mode==="y"){                          // misma fila / misma columna, sin pisarse
+    const ax=mode==="x"?"x":"y",ot=mode==="x"?"y":"x";
+    const sz=ax==="x"?pw:ph,tot=ax==="x"?zw:zh;
+    const or=idx.slice().sort((a,b)=>(e.pos[a][ax]-e.pos[b][ax])||(e.pos[a][ot]-e.pos[b][ot]));
+    const avg=idx.reduce((a,i)=>a+e.pos[i][ot],0)/idx.length;
+    let tt=tot;
+    if(ax==="y")tt=growTo(e,zh,or.length*ph+4);
+    const v=noOverlap(or.map(i=>e.pos[i][ax]*tot/100),sz,sz/2,tt-sz/2);
+    if(!v){gridPlace(e,or,{dir:ax==="x"?"h":"v",x0,y0});return;}
+    or.forEach((i,k)=>{e.pos[i][ax]=pc(v[k]/tt*100);e.pos[i][ot]=pc(avg);});
+    return;
+  }
+  if(mode==="dx"||mode==="dy"){                        // espacio igual entre ellas, linea a linea
+    const ax=mode==="dx"?"x":"y",sz=ax==="x"?pw:ph;
+    let tot=ax==="x"?zw:zh;
+    const lines=linesOf(e,idx,ax,(ax==="x"?ph:pw)*0.6/(ax==="x"?zh:zw)*100);
+    const most=Math.max.apply(null,lines.map(l=>l.length));
+    if(ax==="y")tot=growTo(e,zh,most*ph+4);
+    if(most*sz>tot){gridPlace(e,idx.slice().sort((a,b)=>a-b),{dir:ax==="x"?"h":"v",x0,y0});return;}
+    lines.forEach(l=>{
+      if(l.length<2)return;
+      const vs=l.map(i=>e.pos[i][ax]*(ax==="x"?zw:zh)/100);
+      let a=vs[0],b=vs[vs.length-1];
+      const need=(l.length-1)*sz;
+      if(b-a<need){const c=(a+b)/2,w=Math.min(tot-sz,need*1.5);a=Math.max(sz/2,Math.min(c-w/2,tot-sz/2-w));b=a+w;}
+      l.forEach((i,k)=>e.pos[i][ax]=pc((a+(b-a)*k/(l.length-1))/tot*100));
+    });
+  }
+}
 $("#mvbar").addEventListener("click",ev=>{
   const b=ev.target.closest("[data-al]");if(!b)return;
   const mode=b.dataset.al;
@@ -1540,44 +1673,7 @@ $("#mvbar").addEventListener("click",ev=>{
   Object.keys(byEl).forEach(id=>{
     const e=elById(id),idx=byEl[id];
     if(!e||!Array.isArray(e.pos)||idx.length<2)return;
-    const pts=idx.map(i=>e.pos[i]);
-    if(mode==="x"){const y=pts.reduce((a,q)=>a+q.y,0)/pts.length;idx.forEach(i=>e.pos[i].y=clamp(y));}
-    if(mode==="y"){const x=pts.reduce((a,q)=>a+q.x,0)/pts.length;idx.forEach(i=>e.pos[i].x=clamp(x));}
-    if(mode==="pack"){                              // alinear y pegar
-      const xs=pts.map(q=>q.x),ys=pts.map(q=>q.y);
-      const ax=(Math.max.apply(null,xs)-Math.min.apply(null,xs))>=(Math.max.apply(null,ys)-Math.min.apply(null,ys))?"x":"y";
-      const ot=ax==="x"?"y":"x";
-      const or=idx.slice().sort((a,b2)=>(e.pos[a][ax]-e.pos[b2][ax])||(e.pos[a][ot]-e.pos[b2][ot]));
-      const n=or.length;
-      const n0=portNode(e.id,or[0]+1),zn=n0&&n0.parentElement;
-      const sizePx=(n0?(ax==="x"?n0.offsetWidth:n0.offsetHeight):20)+3;
-      let zonePx=zn?((ax==="x"?zn.offsetWidth:zn.offsetHeight)||100):100;
-      const needPx=sizePx*(n-1);
-      if(needPx>zonePx*0.94){
-        if(ax==="y"){                                // en vertical la caja crece para que quepan
-          const nuevo=Math.ceil(needPx/0.94);
-          e.u=Math.min(20,Math.max(+e.u||1,Math.ceil((nuevo+38)/UPX)));
-          zonePx=nuevo;
-        }else zonePx=needPx/0.94;                    // en horizontal el ancho manda: se ajusta el paso
-      }
-      const step=Math.max(.8,sizePx/zonePx*100);
-      let v0=Math.min.apply(null,pts.map(q=>q[ax]));
-      if(v0+step*(n-1)>97)v0=Math.max(3,97-step*(n-1));
-      const avg=pts.reduce((a,q)=>a+q[ot],0)/pts.length;
-      or.forEach((i,k)=>{e.pos[i][ax]=clamp(v0+step*k);e.pos[i][ot]=clamp(avg);});
-    }
-    if(mode==="dx"||mode==="dy"){
-      const ax=mode==="dx"?"x":"y", ot=mode==="dx"?"y":"x";
-      const or=idx.slice().sort((a,b2)=>(e.pos[a][ax]-e.pos[b2][ax])||(e.pos[a][ot]-e.pos[b2][ot]));
-      const v0=e.pos[or[0]][ax], v1=e.pos[or[or.length-1]][ax];
-      let a0=v0, a1=v1;
-      if(Math.abs(v1-v0)<1.5){                       // ya estaban en linea: repartir con paso fijo
-        const step=mode==="dx"?8:12;
-        a0=Math.max(4,Math.min(v0,96-(or.length-1)*step));
-        a1=Math.min(96,a0+(or.length-1)*step);
-      }
-      or.forEach((i,k)=>e.pos[i][ax]=clamp(a0+(a1-a0)*k/(or.length-1)));
-    }
+    arrange(e,idx,mode);
   });
   save();render();
   toast(sel.size+" bocas ajustadas");
@@ -1610,10 +1706,11 @@ function orderModal(){
       <option value="desc">Descendente — el número más alto, primero</option>
     </select></div>
     <div class="fld"><label>Posiciones</label><select id="o_place">
+      <option value="pack">Juntarlas</option>
+      <option value="spread">Repartirlas a lo ancho de la caja</option>
       <option value="keep">Mantener las posiciones actuales (solo reordena los números)</option>
-      <option value="pack">Juntarlas en línea</option>
-      <option value="spread">Repartirlas en línea</option>
     </select></div>
+    <div class="hint">Si no caben en una fila se pasan a la siguiente; con «por columnas» quedan de dos en dos, como en un switch.</div>
   </div>
   <div class="foot"><button class="btn" id="o_cancel">Cancelar</button><button class="btn acc" id="o_ok">Ordenar</button></div>`;
   veil.classList.add("on");
@@ -1631,33 +1728,17 @@ function applyOrder(path,dir,place){
   Object.keys(byEl).forEach(id=>{
     const e=elById(id),idx=byEl[id].slice().sort((a,b)=>a-b);
     if(!e||!Array.isArray(e.pos)||idx.length<2)return;
-    const n=idx.length;
-    const n0=portNode(e.id,idx[0]+1),zn=n0&&n0.parentElement;
-    const wPx=(n0?n0.offsetWidth:20)+3, hPx=(n0?n0.offsetHeight:20)+3;
-    const zw=zn?(zn.offsetWidth||100):100, zh=zn?(zn.offsetHeight||100):100;
-    let slots=idx.map(i=>({x:e.pos[i].x,y:e.pos[i].y}));
-    if(place!=="keep"){                       // se generan posiciones nuevas en linea
-      const xs=slots.map(q=>q.x),ys=slots.map(q=>q.y);
-      const spanX=Math.max.apply(null,xs)-Math.min.apply(null,xs);
-      const spanY=Math.max.apply(null,ys)-Math.min.apply(null,ys);
-      const ax=spanX>=spanY?"x":"y", ot=ax==="x"?"y":"x";
-      const sizePc=ax==="x"?wPx/zw*100:hPx/zh*100;
-      let step=place==="pack"?sizePc:Math.max(sizePc,(ax==="x"?spanX:spanY)/(n-1));
-      if(ax==="y"&&step*(n-1)>94){             // la caja crece si hace falta
-        const nuevo=Math.ceil(hPx*(n-1)/0.94);
-        e.u=Math.min(20,Math.max(+e.u||1,Math.ceil((nuevo+38)/UPX)));
-        step=hPx/nuevo*100;
-      }
-      if(step*(n-1)>96)step=96/(n-1);
-      let v0=Math.min.apply(null,slots.map(q=>q[ax]));
-      if(v0+step*(n-1)>97)v0=Math.max(3,97-step*(n-1));
-      const avg=slots.reduce((a,q)=>a+q[ot],0)/n;
-      slots=slots.map((q,k)=>{const o={};o[ax]=clamp(v0+step*k);o[ot]=clamp(avg);return o;});
+    const n=idx.length,ports=dir==="desc"?idx.slice().reverse():idx;
+    const {pw,ph,zw,zh}=zoneOf(e,idx[0]);
+    if(place==="keep"){                         // mismas casillas, numeros en el orden elegido
+      const slots=idx.map(i=>({x:e.pos[i].x,y:e.pos[i].y}));
+      const tol=path==="cols"?Math.max(1,pw/zw*100*0.6):Math.max(1,ph/zh*100*0.6);
+      const seq=readOrder(slots,path==="cols"?"x":"y",tol);
+      seq.forEach((slot,k)=>{e.pos[ports[k]]={x:slot.x,y:slot.y};});
+    }else{
+      const x0=Math.min.apply(null,idx.map(i=>e.pos[i].x))*zw/100,y0=Math.min.apply(null,idx.map(i=>e.pos[i].y))*zh/100;
+      gridPlace(e,ports,path==="cols"?{dir:"v",per:2,spread:place==="spread",x0,y0}:{dir:"h",spread:place==="spread",x0,y0});
     }
-    const tol=path==="cols"?Math.max(3,wPx/zw*100*0.6):Math.max(3,hPx/zh*100*0.6);
-    const seq=readOrder(slots,path==="cols"?"x":"y",tol);
-    const ports=dir==="desc"?idx.slice().reverse():idx;
-    seq.forEach((slot,k)=>{const i=ports[k];e.pos[i]={x:clamp(slot.x),y:clamp(slot.y)};});
     tot+=n;
   });
   save();render();
@@ -1686,17 +1767,92 @@ function setAdd(on){
 $("#addmode").onclick=()=>setAdd(!addMode);
 $("#mvoff").onclick=()=>setMove(false);
 
+/* ---------- ancho del rack: arrastrar su borde derecho ---------- */
+// ancho minimo: el de la fila de bocas mas larga (las cajas libres se adaptan a cualquier ancho)
+function rackMin(rn){
+  let m=340;
+  rn.querySelectorAll(".ports:not(.free)").forEach(p=>{m=Math.max(m,p.scrollWidth+rn.offsetWidth-p.clientWidth);});
+  return Math.ceil(m);
+}
+let rwd=null;
+racksEl.addEventListener("pointerdown",ev=>{
+  const g=ev.target.closest(".rgrip");if(!g||ev.button!==0)return;
+  ev.preventDefault();ev.stopPropagation();
+  const rn=g.closest(".rack"),r=S.racks.find(x=>x.id===rn.dataset.rack);if(!r)return;
+  const w0=rn.offsetWidth,min=rackMin(rn);
+  rwd={r,rn,g,x0:ev.clientX,w0,min,w:w0};g.classList.add("on");
+});
+addEventListener("pointermove",ev=>{
+  if(!rwd)return;
+  rwd.w=Math.round(Math.max(rwd.min,Math.min(4000,rwd.w0+(ev.clientX-rwd.x0)/S.zoom)));
+  rwd.rn.style.width=rwd.w+"px";requestAnimationFrame(draw);
+});
+addEventListener("pointerup",()=>{
+  if(!rwd)return;
+  const {r,w,w0,g}=rwd;rwd=null;g.classList.remove("on");
+  if(Math.abs(w-w0)>2){r.w=w;save();render();}
+});
+racksEl.addEventListener("dblclick",ev=>{
+  const g=ev.target.closest(".rgrip");if(!g)return;
+  const r=S.racks.find(x=>x.id===g.closest(".rack").dataset.rack);
+  if(r&&r.w){r.w=0;save();render();toast("Ancho automático");}
+});
+
+/* ---------- deshacer / rehacer (Ctrl+Z / Ctrl+Y) ---------- */
+// cada guardado que cambia datos deja una foto; zoom, tema y sala elegida no cuentan como cambio
+var UNDO,REDO,hFull=null,hKey=null,hMute=false;       // var: save() puede llegar antes de esta linea
+function hKeyOf(){return JSON.stringify(DB,(k,v)=>k==="zoom"||k==="theme"||k==="cableMode"||k==="expScope"||k==="expCab"||k==="current"?undefined:v);}
+function histTrack(full){
+  if(!UNDO)return;
+  const k=hKeyOf();
+  if(hKey!==null&&k!==hKey&&!hMute){UNDO.push(hFull);if(UNDO.length>60)UNDO.shift();REDO.length=0;}
+  hKey=k;hFull=full;histUI();
+}
+function histReset(){UNDO=[];REDO=[];hFull=JSON.stringify(DB);hKey=hKeyOf();histUI();}
+function histUI(){const u=$("#undo"),r=$("#redo");if(u)u.disabled=!UNDO.length;if(r)r.disabled=!REDO.length;}
+function histGo(from,to,msg){
+  if(!from.length){toast(msg[1]);return;}
+  to.push(hFull);
+  const keep={current:DB.current,theme:DB.theme,cableMode:DB.cableMode,expScope:DB.expScope,expCab:DB.expCab,zoom:S.zoom};
+  setDB(prepDB(JSON.parse(from.pop())));
+  Object.assign(DB,{theme:keep.theme,cableMode:keep.cableMode,expScope:keep.expScope,expCab:keep.expCab});
+  if(DB.rooms.some(r=>r.id===keep.current))DB.current=keep.current;
+  room().state.zoom=keep.zoom;
+  hMute=true;try{setPending(null);useRoom(DB.current);save();}finally{hMute=false;}
+  toast(msg[0]);
+}
+const undo=()=>histGo(UNDO,REDO,["Deshecho","No hay nada que deshacer"]);
+const redo=()=>histGo(REDO,UNDO,["Rehecho","No hay nada que rehacer"]);
+$("#undo").onclick=undo;$("#redo").onclick=redo;
+addEventListener("keydown",ev=>{
+  if(!(ev.ctrlKey||ev.metaKey)||ev.altKey)return;
+  const k=ev.key.toLowerCase();if(k!=="z"&&k!=="y")return;
+  const t=ev.target;if(t&&(/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName)||t.isContentEditable))return;
+  if(veil.classList.contains("on"))return;
+  ev.preventDefault();
+  if(k==="y"||ev.shiftKey)redo();else undo();
+});
+
 /* ---------- zoom / buscador / io ---------- */
 function setZoom(z){
   S.zoom=Math.max(.35,Math.min(1.6,z));
   inner.style.zoom=S.zoom;
-  $("#zl").textContent=Math.round(S.zoom*100)+"%";
+  $("#zl").value=Math.round(S.zoom*100)+"%";
   save();requestAnimationFrame(draw);
 }
 $("#mv").onclick=()=>setMove(!moveMode);
 $("#zi").onclick=()=>setZoom(S.zoom+.1);
 $("#zo").onclick=()=>setZoom(S.zoom-.1);
-$("#zr").onclick=()=>{const need=racksEl.scrollWidth+80;setZoom(Math.min(1,stage.clientWidth/need));stage.scrollLeft=0;};
+// el ancho natural no depende del zoom: pulsarlo otra vez deja el mismo valor
+$("#zr").onclick=()=>{
+  const k=racksEl.lastElementChild;if(!k)return;
+  const nat=(k.getBoundingClientRect().right-racksEl.getBoundingClientRect().left)/S.zoom+70;
+  setZoom(Math.floor(Math.min(1,(stage.clientWidth-4)/nat)*100)/100);stage.scrollLeft=0;
+};
+$("#zl").addEventListener("change",ev=>{const v=parseFloat(String(ev.target.value).replace(",","."));
+  if(v>0)setZoom(v/100);else ev.target.value=Math.round(S.zoom*100)+"%";ev.target.blur();});
+$("#zl").addEventListener("keydown",ev=>{if(ev.key==="Enter")ev.target.blur();if(ev.key==="Escape"){ev.target.value=Math.round(S.zoom*100)+"%";ev.target.blur();}});
+$("#zl").addEventListener("focus",ev=>ev.target.select());
 stage.addEventListener("wheel",ev=>{if(ev.ctrlKey){ev.preventDefault();setZoom(S.zoom+(ev.deltaY<0?.08:-.08));}},{passive:false});
 
 let q="";
@@ -1751,9 +1907,10 @@ function deliver(blob,name,kind,text){
 const stamp=()=>new Date().toISOString().slice(0,10);
 const slug=t=>String(t||"sala").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")||"sala";
 // una fila por cable: origen y destino con su sala (los cables entre salas salen una sola vez)
-function rows(){
+function rows(flt){                                   // flt: aplicar el filtro de cables de las exportaciones graficas
   const out=[],salas=expScope==="all"?DB.rooms:[room()],ids=salas.map(r=>r.id);
   const fila=(ra,a,rb,b,l)=>{const A=endIn(ra,a),B=endIn(rb,b);
+    if(flt&&!cabOK(l,ra===rb?A.rk:null,ra===rb?B.rk:null))return;
     out.push([ra.name,A.rk?A.rk.name:"",A.e?A.e.name:"",A.e?portLabel(A.e,a.port):a.port,
               rb.name,B.rk?B.rk.name:"",B.e?B.e.name:"",B.e?portLabel(B.e,b.port):b.port,
               (CABLES[l.cable]||CABLES.otro).n,l.label||"",(l.note||"").replace(/\r?\n/g," ")]);};
@@ -1777,18 +1934,36 @@ function expJSON(){
   const j=JSON.stringify(DB,null,2);
   deliver(new Blob([j],{type:"application/json"}),"rack-cableado-"+stamp()+".json","txt",j);
 }
+/* --- que cables salen en PNG, SVG y PDF (por seguridad puede no querer ensenarse todo) --- */
+const CABF={all:"todos los cables",none:"sin cables",rack:"solo cables entre racks distintos",xroom:"solo cables a otras salas",fibra:"solo fibra",cobre:"solo cobre"};
+const cabSel=()=>has(CABF,DB.expCab)?DB.expCab:"all";
+// rkA/rkB: rack de cada extremo (null si esta en otra sala)
+function cabOK(l,rkA,rkB){
+  switch(cabSel()){
+    case "none":return false;
+    case "rack":return isX(l)||rkA!==rkB;
+    case "xroom":return isX(l);
+    case "fibra":return /^fibra/.test(l.cable);
+    case "cobre":return /^cat|^dac$/.test(l.cable);
+    default:return true;
+  }
+}
+const cabHere=l=>cabOK(l,isX(l)?null:rackOf(l.a.el),isX(l)?null:rackOf(l.b.el));
 /* --- copia vectorial del lienzo (fondo claro, para imprimir) --- */
 function snapshotSVG(){
   const base=inner.getBoundingClientRect(),z=S.zoom;
-  const W=Math.ceil(inner.scrollWidth),H=Math.ceil(inner.scrollHeight);
   const R=n=>{const r=n.getBoundingClientRect();
     return{x:(r.left-base.left)/z,y:(r.top-base.top)/z,w:r.width/z,h:r.height/z};};
+  const rr=[...racksEl.querySelectorAll(".rack")].map(R);                // solo lo que ocupan los racks
+  const LEG=150,W=Math.ceil(Math.max(340,rr.reduce((a,r)=>Math.max(a,r.x+r.w),0)+26));
+  const perRow=Math.max(1,Math.floor((W-40)/LEG)),legRows=Math.ceil(Object.keys(CABLES).length/perRow);
+  const H=Math.ceil(rr.reduce((a,r)=>Math.max(a,r.y+r.h),0)+24+legRows*20);
   const T=(x,y,t,size,col,w,anchor)=>`<text x="${x.toFixed(1)}" y="${y.toFixed(1)}" font-family="Segoe UI,Arial,sans-serif" font-size="${size}" fill="${col}" font-weight="${w||400}"${anchor?' text-anchor="'+anchor+'"':''}>${esc(t)}</text>`;
   const B=(r,fill,stroke,sw,rad)=>`<rect x="${r.x.toFixed(1)}" y="${r.y.toFixed(1)}" width="${r.w.toFixed(1)}" height="${r.h.toFixed(1)}" rx="${rad||4}" fill="${fill}" stroke="${stroke}" stroke-width="${sw||1}"/>`;
-  let g="";
+  let g="";const racks=[];
   racksEl.querySelectorAll(".rack").forEach(rn=>{
     const rk=S.racks.find(x=>x.id===rn.dataset.rack);if(!rk)return;
-    const r=R(rn);
+    const r=R(rn);racks.push({name:rk.name,x:r.x,y:r.y,w:r.w,h:r.h});
     g+=B(r,"#ffffff","#1f2937",2,10);
     g+=`<rect x="${r.x.toFixed(1)}" y="${r.y.toFixed(1)}" width="${r.w.toFixed(1)}" height="34" rx="10" fill="#fde68a" stroke="#1f2937" stroke-width="2"/>`;
     g+=T(r.x+12,r.y+22,rk.name,15,"#111827",700);
@@ -1809,7 +1984,7 @@ function snapshotSVG(){
       g+=T(er.x+8,er.y+15,e.name,11,"#0f172a",700);
       if(e.sub)g+=T(er.x+8+Math.min(e.name.length*6.6+10,260),er.y+15,e.sub,9,"#475569",400);
       en.querySelectorAll(".port").forEach(pn=>{
-        const pr=R(pn),port=+pn.dataset.port,ls=linksOf(e.id,port);
+        const pr=R(pn),port=+pn.dataset.port,ls=linksOf(e.id,port).filter(cabHere);
         const fill=ls.length?(CABLES[ls[0].cable]||CABLES.otro).c:"#e2e8f0";
         g+=B(pr,fill,"#475569",1,2.5);
         if(pr.w>=17)g+=T(pr.x+pr.w/2,pr.y+pr.h/2+3.2,pn.textContent,7.5,ls.length?"#0b1220":"#334155",600,"middle");
@@ -1818,15 +1993,17 @@ function snapshotSVG(){
   });
   let cab="";
   for(const l of S.links){
+    if(!cabHere(l))continue;
     const d=pathOf(l,base);if(!d)continue;
     const c=(CABLES[l.cable]||CABLES.otro).c;
     cab+=`<path d="${d}" fill="none" stroke="${c}" stroke-width="2" opacity="0.85" stroke-linecap="round"/>`;
   }
-  let leg='',lx=20,ly=H-30;
-  Object.values(CABLES).forEach((c,i)=>{
-    leg+=`<rect x="${lx+i*150}" y="${ly-9}" width="22" height="5" fill="${c.c}"/>`+T(lx+i*150+28,ly-4,c.n,10,"#334155",600);
+  let leg='';const ly0=H-legRows*20+6;
+  if(cabSel()!=="none")Object.values(CABLES).forEach((c,i)=>{
+    const lx=20+(i%perRow)*LEG,ly=ly0+Math.floor(i/perRow)*20;
+    leg+=`<rect x="${lx}" y="${ly-5}" width="22" height="5" fill="${c.c}"/>`+T(lx+28,ly,c.n,10,"#334155",600);
   });
-  return {W,H,body:g+cab+leg,
+  return {W,H,racks,body:g+cab+leg,
     svg:`<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">`
     +`<rect width="${W}" height="${H}" fill="#ffffff"/>${g}${cab}${leg}</svg>`};
 }
@@ -1870,7 +2047,7 @@ function expSVG(){
 function toPNG(opt,cb,fail){
   const maxPx=opt.maxPx||7e6, maxDim=opt.maxDim||4200;
   let snap;
-  try{snap=snapNow();}catch(err){return fail&&fail("No se pudo dibujar el plano");}
+  try{snap=opt.snap||snapNow();}catch(err){return fail&&fail("No se pudo dibujar el plano");}
   const W=snap.W,H=snap.H;
   const sc=Math.max(.35,Math.min(2,Math.sqrt(maxPx/(W*H)),maxDim/W,maxDim/H));
   const url=svgURL(snap.svg);
@@ -1902,12 +2079,25 @@ function expPNG(){
     }catch(err){expFail("Imagen demasiado grande");}
   },expFail),60);
 }
+// recorte de un rack del plano completo, para darle su propia pagina en el PDF
+function rackSnap(snap,r){
+  const x=r.x-8,y=r.y-8,w=r.w+16,h=r.h+16;
+  return {W:w,H:h,svg:`<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="${x} ${y} ${w} ${h}">`
+    +`<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="#ffffff"/>${snap.body}</svg>`};
+}
+const rast=(snap,maxPx)=>new Promise((ok,ko)=>toPNG({snap,maxPx,maxDim:2400},c=>{try{ok(c.toDataURL("image/jpeg",0.9));}catch(err){ko("No se pudo preparar el plano");}},ko));
 function expPDF(){
   toast("Preparando documento…");
-  setTimeout(()=>toPNG({maxPx:4e6,maxDim:2400},c=>{
-    let url="";
-    try{url=c.toDataURL("image/jpeg",0.9);}catch(err){return expFail("No se pudo preparar el plano");}
+  setTimeout(async()=>{
     const salas=expScope==="all"?DB.rooms:[room()];
+    let general,paginas=[];
+    try{
+      general=await rast(snapNow(),4e6);
+      const parts=expScope==="all"?salas.map(r=>({sala:r,snap:withRoom(r,()=>snapshotSVG())})):[{sala:room(),snap:snapshotSVG()}];
+      const nr=parts.reduce((a,p)=>a+p.snap.racks.length,0);
+      if(nr>1)for(const p of parts)for(const r of p.snap.racks)
+        paginas.push({t:(expScope==="all"?p.sala.name+" · ":"")+r.name,url:await rast(rackSnap(p.snap,r),5e6)});
+    }catch(err){return expFail(typeof err==="string"?err:"No se pudo preparar el plano");}
     const inv=salas.map(sa=>{
       const st=sa.state;
       const ocup=(st2,e)=>st2.links.filter(l=>(l.a.el===e.id)||(l.b.el===e.id)).length
@@ -1923,15 +2113,17 @@ function expPDF(){
         e:DB.rooms.reduce((a,x)=>a+x.state.racks.reduce((b,y)=>b+y.elements.length,0),0),
         l:DB.rooms.reduce((a,x)=>a+x.state.links.length,0)+DB.xlinks.length}
       :{r:S.racks.length,e:S.racks.reduce((a,r)=>a+r.elements.length,0),l:S.links.length+xHere().length};
-    $("#print").innerHTML=`<h1>Documentación de cableado — ${expScope==="all"?DB.rooms.length+" salas":esc(room().name)}</h1>
-      <div class="meta">Generado el ${new Date().toLocaleString("es-ES")} · ${expScope==="all"?esc(DB.rooms.map(x=>x.name).join(" · ")):"sala "+esc(room().name)} · ${tot.r} racks · ${tot.e} equipos · ${tot.l} cables</div>
-      <img src="${url}">
-      <h2>Conexiones (${rows().length})</h2>
+    const filas=rows(true),fl=cabSel()!=="all";
+    $("#print").innerHTML=`<div class="plano"><h1>Documentación de cableado — ${expScope==="all"?DB.rooms.length+" salas":esc(room().name)}</h1>
+      <div class="meta">Generado el ${new Date().toLocaleString("es-ES")} · ${expScope==="all"?esc(DB.rooms.map(x=>x.name).join(" · ")):"sala "+esc(room().name)} · ${tot.r} racks · ${tot.e} equipos · ${fl?esc(CABF[cabSel()]):tot.l+" cables"}</div>
+      <img src="${general}"></div>
+      ${paginas.map(p=>`<div class="plano rk"><h2>${esc(p.t)}</h2><img src="${p.url}"></div>`).join("")}
+      ${cabSel()==="none"?"":`<h2>Conexiones (${filas.length})${fl?" — "+esc(CABF[cabSel()]):""}</h2>
       <table><tr><th>Sala</th><th>Rack</th><th>Equipo</th><th>Boca</th><th>Sala</th><th>Rack</th><th>Equipo</th><th>Boca</th><th>Cable</th><th>Etiqueta</th><th>Nota</th></tr>
-      ${rows().map(r=>"<tr>"+r.map(c=>`<td>${esc(c)}</td>`).join("")+"</tr>").join("")}</table>
+      ${filas.map(r=>"<tr>"+r.map(c=>`<td>${esc(c)}</td>`).join("")+"</tr>").join("")}</table>`}
       ${inv}`;
     setTimeout(()=>{window.print();toast("Elige \"Guardar como PDF\" en el diálogo");},500);
-  },expFail),60);
+  },60);
 }
 let expScope="room";
 function setScope(v){
@@ -1939,6 +2131,9 @@ function setScope(v){
   $$("#expScope button").forEach(b=>b.classList.toggle("on",b.dataset.scope===v));
   try{save();}catch(e){}
 }
+$("#expCab").addEventListener("click",ev=>ev.stopPropagation());
+$("#expCab").addEventListener("change",ev=>{DB.expCab=ev.target.value;save();
+  toast(DB.expCab==="all"?"Las exportaciones llevarán todos los cables":"PNG, SVG y PDF: "+CABF[DB.expCab]);});
 $("#expScope").addEventListener("click",ev=>{
   const b=ev.target.closest("[data-scope]");if(!b)return;
   ev.stopPropagation();setScope(b.dataset.scope);
@@ -2299,8 +2494,15 @@ addEventListener("beforeunload",ev=>{
 });
 
 /* ---------- versión y novedades ---------- */
-const VERSION="2.0";
+const VERSION="2.1";
 const NEWS=[
+ {v:"2.1",d:"14 de octubre de 2026",items:[
+   "Deshacer y rehacer con Ctrl+Z / Ctrl+Y (o con ↶ ↷ en la barra).",
+   "Colocar bocas: Juntar, Repartir, Alinear y Ordenar ya no las montan unas encima de otras. Si no caben en una fila pasan a la siguiente, y «por columnas» las deja de dos en dos como en un switch.",
+   "Ancho de los racks: arrastra su borde derecho, o en ✎ ponlo igual para todos. Los racks ya no se ensanchan solos por el nombre de una caja de media anchura.",
+   "Exportar: elige qué cables salen en PNG, SVG y PDF (ninguno, solo entre racks, solo a otras salas, solo fibra o solo cobre), para no enseñar todo el conexionado. El PDF trae además una página por rack, a tamaño legible.",
+   "Zoom escribiendo el porcentaje, y «Ajustar a la ventana» ya no baja un punto cada vez que lo pulsas.",
+   "Las ventanas con muchos botones ya no se salen por los lados."]},
  {v:"2.0",d:"9 de octubre de 2026",items:[
    "Cables entre salas: pulsa «Conectar esta boca…», cambia de sala en el desplegable y elige el destino. La boca lleva la marca ↗ y desde su ficha saltas a la otra sala.",
    "Trabajo en equipo: si varias personas usan el mismo archivo en una carpeta de red, cada una ve los cambios de las demás y se avisa si dos guardan a la vez. Y hay un modo servidor opcional para Apache con PHP (rackscope.php).",
@@ -2345,13 +2547,14 @@ let hadData=false;try{hadData=!!localStorage.getItem(KEY);}catch(e){}
 
 setDB(load());
 S=room().state;
-setScope(DB.expScope==="all"?"all":"room");S.theme=DB.theme;S.cableMode=DB.cableMode;
+setScope(DB.expScope==="all"?"all":"room");$("#expCab").value=cabSel();S.theme=DB.theme;S.cableMode=DB.cableMode;
 fillRooms();
 layout();
 setTheme(DB.theme);
 setCableMode(DB.cableMode);
 setZoom(S.zoom||1);
 render();
+histReset();
 try{localStorage.setItem(KEY+".test","1");localStorage.removeItem(KEY+".test");}catch(e){lsOK=false;}
 updateSaveUI();
 if(SRV){$("#linkFile").style.display="none";srvStart();}else restoreHandle();

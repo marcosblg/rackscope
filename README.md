@@ -14,7 +14,7 @@ Tiene una herramienta hermana, **[SubnetScope](https://github.com/marcosblg/subn
 
 ### 👉 [Pruébalo ahora en el navegador](https://marcosblg.github.io/rackscope/)
 
-> 🆕 **v2.0** (9 de octubre de 2026): cables entre salas, trabajo en equipo (carpeta de red o servidor Apache), bocas SFP con su propia numeración, tipos de equipo propios y copiar racks. Todo pedido por vosotros en las *issues*. [Ver todas las novedades](CHANGELOG.md)
+> 🆕 **v2.1** (14 de octubre de 2026): deshacer con Ctrl+Z, bocas que ya no se solapan al colocarlas, ancho de rack ajustable y exportaciones sin enseñar todo el cableado. Viene de la v2.0: cables entre salas, trabajo en equipo, bocas SFP, tipos propios y copiar racks. [Ver todas las novedades](CHANGELOG.md)
 
 No hay que instalar ni descargar nada: el enlace abre la herramienta con una sala de ejemplo. Pulsa **▶ Ver demo** para la visita guiada.
 
@@ -39,7 +39,9 @@ No hay que instalar ni descargar nada: el enlace abre la herramienta con una sal
 - **Bocas SFP aparte** con su propia numeración (S1, S2…), a la derecha o a la izquierda del bloque normal.
 - **Tipos de equipo propios** (router, centralita, KVM…) con su nombre y su color.
 - Cajas de ancho y alto variable: barras de 1U, servidores de 2U, cabinas cuadradas, varias cajas en la misma fila.
-- Herramientas para cuadrar bocas: selección múltiple con Ctrl/Shift, selección por recuadro, mover en grupo, alinear, repartir, juntar, ordenar por número y ajuste fino con las flechas.
+- Herramientas para cuadrar bocas: selección múltiple con Ctrl/Shift, selección por recuadro, mover en grupo, alinear, repartir, juntar, ordenar por número y ajuste fino con las flechas. Lo que no cabe en una fila pasa a la siguiente, sin montar unas bocas sobre otras.
+- Deshacer y rehacer con Ctrl+Z / Ctrl+Y.
+- El ancho de cada rack se cambia arrastrando su borde derecho.
 
 **Saber qué te cabe**
 - Regla de U a la izquierda de cada rack, con el rango que ocupa cada equipo.
@@ -57,7 +59,8 @@ No hay que instalar ni descargar nada: el enlace abre la herramienta con una sal
 
 **Sacar la documentación fuera**
 - Imagen **PNG** o **SVG** del plano completo.
-- **PDF** con el plano, la tabla de conexiones y el inventario por rack con sus U.
+- **PDF** con el plano general, una página por rack, la tabla de conexiones y el inventario por rack con sus U.
+- Puedes elegir qué cables salen en las imágenes y el PDF (ninguno, solo entre racks, solo a otras salas, solo fibra o solo cobre) para no enseñar todo el conexionado.
 - **CSV** para Excel con todas las conexiones.
 - **JSON** de copia de seguridad.
 - Todo ello de una sala o de todas a la vez.

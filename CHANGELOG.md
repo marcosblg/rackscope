@@ -2,6 +2,18 @@
 
 # Novedades de RackScope
 
+## v2.1 — 14 de octubre de 2026
+
+Arreglos y mejoras pedidos en las *issues* [#7](https://github.com/marcosblg/rackscope/issues/7) y [#8](https://github.com/marcosblg/rackscope/issues/8).
+
+- **Deshacer y rehacer** con Ctrl+Z / Ctrl+Y, o con ↶ ↷ en la barra.
+- **Colocar bocas**: *Juntar*, *Repartir*, *Alinear* y *Ordenar* ya no dejan bocas encima de otras. Si no caben en una fila pasan a la siguiente (y la caja crece en U si hace falta); *Ordenar por columnas* las deja de dos en dos, como en un switch.
+- **Ancho de los racks**: arrastra el borde derecho de un rack para cambiarlo (doble clic vuelve al automático), o ponlo igual para todos desde ✎. Además, los racks ya no se ensanchan solos por el nombre de una caja de media anchura.
+- **Qué cables salen al exportar**: en *Exportar* eliges si el PNG, el SVG y el PDF llevan todos los cables, ninguno, solo los que van entre racks, solo los que van a otras salas, solo fibra o solo cobre. Así no tienes que enseñar todo el conexionado. El listado de cables del PDF sigue el mismo filtro; el CSV y el JSON siguen llevándolo todo.
+- **PDF legible**: el plano general se ajusta a la página y cada rack sale además en su propia página, en vertical.
+- **Zoom** escribiendo el porcentaje, y *Ajustar a la ventana* ya no baja un punto cada vez que lo pulsas.
+- Las ventanas con muchos botones ya no se salen por los lados.
+
 ## v2.0 — 9 de octubre de 2026
 
 Todo lo que habéis pedido en las *issues* de GitHub. Gracias.
@@ -43,6 +55,18 @@ Primera versión pública.
 ---
 
 # What's new in RackScope
+
+## v2.1 — October 14, 2026
+
+Fixes and improvements requested in issues [#7](https://github.com/marcosblg/rackscope/issues/7) and [#8](https://github.com/marcosblg/rackscope/issues/8).
+
+- **Undo and redo** with Ctrl+Z / Ctrl+Y, or with ↶ ↷ in the toolbar.
+- **Port placement**: *Juntar*, *Repartir*, *Alinear* and *Ordenar* no longer stack ports on top of each other. When they do not fit in one row they wrap to the next one (and the box grows in U if needed); ordering *by columns* lays them out in pairs, like a switch.
+- **Rack width**: drag a rack's right edge to change it (double click goes back to automatic), or make all racks the same width from ✎. Racks no longer widen on their own because of the name of a half-width box.
+- **Which cables are exported**: in *Exportar* choose whether PNG, SVG and PDF show all cables, none, only between racks, only to other rooms, only fiber or only copper, so you do not have to reveal all your cabling. The PDF cable list follows the same filter; CSV and JSON still carry everything.
+- **Readable PDF**: the overview fits the page and every rack also gets its own portrait page.
+- **Zoom** by typing the percentage, and *fit to window* no longer drops one point every time you press it.
+- Dialogs with many buttons no longer overflow sideways.
 
 ## v2.0 — October 9, 2026
 

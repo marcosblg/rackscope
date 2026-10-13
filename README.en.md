@@ -14,7 +14,7 @@ It has a sister tool, **[SubnetScope](https://github.com/marcosblg/subnetscope)*
 
 ### 👉 [Try it right now in your browser](https://marcosblg.github.io/rackscope/)
 
-> 🆕 **v2.0** (October 9, 2026): cables between rooms, teamwork (shared network folder or Apache server), SFP ports with their own numbering, custom device types and rack copying. All requested by you in the issues. [See the full changelog](CHANGELOG.md#whats-new-in-rackscope)
+> 🆕 **v2.1** (October 14, 2026): undo with Ctrl+Z, ports that no longer overlap when arranged, adjustable rack width and exports that do not reveal all your cabling. On top of v2.0: cables between rooms, teamwork, SFP ports, custom types and rack copying. [See the full changelog](CHANGELOG.md#whats-new-in-rackscope)
 
 Nothing to install or download: the link opens the tool with a sample room. Hit **▶ Ver demo** for the guided tour.
 
@@ -39,7 +39,9 @@ Nothing to install or download: the link opens the tool with a sample room. Hit 
 - **Separate SFP ports** with their own numbering (S1, S2…), to the right or left of the regular block.
 - **Custom device types** (router, PBX, KVM…) with their own name and color.
 - Variable width and height: 1U bars, 2U servers, square arrays, several boxes side by side in one row.
-- Tools to line ports up: multi-select with Ctrl/Shift, marquee selection, group drag, align, distribute, pack, sort by number and arrow-key nudging.
+- Tools to line ports up: multi-select with Ctrl/Shift, marquee selection, group drag, align, distribute, pack, sort by number and arrow-key nudging. Whatever does not fit in one row wraps to the next one, without stacking ports.
+- Undo and redo with Ctrl+Z / Ctrl+Y.
+- Change each rack's width by dragging its right edge.
 
 **Know what fits**
 - A U ruler down the left of each rack, showing the range each device occupies.
@@ -57,7 +59,8 @@ Nothing to install or download: the link opens the tool with a sample room. Hit 
 
 **Get the documentation out**
 - **PNG** or **SVG** image of the whole layout.
-- **PDF** with the layout, the connection table and a per-rack inventory with U usage.
+- **PDF** with the overview, one page per rack, the connection table and a per-rack inventory with U usage.
+- Choose which cables appear in images and PDF (none, only between racks, only to other rooms, only fiber or only copper) so you do not reveal all your cabling.
 - **CSV** for Excel with every connection.
 - **JSON** backup.
 - Any of them for one room or for all of them at once.
