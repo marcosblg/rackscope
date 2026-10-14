@@ -1195,13 +1195,35 @@ function handleAct(btn){
   if(act==="eup"&&ei>0){r.elements.splice(ei,1);r.elements.splice(ei-1,0,e);save();render();}
   if(act==="edown"&&ei<r.elements.length-1){r.elements.splice(ei,1);r.elements.splice(ei+1,0,e);save();render();}
   if(act==="eedit")editElement(r,e);
-  if(act==="edel"){if(confirm(`¿Borrar "${e.name}" y sus cables?`)){dropLinksOf([e.id]);r.elements.splice(ei,1);save();render();}}
+  if(act==="edel")delElement(r,ei);
 }
 
 /* ---------- modales ---------- */
 const veil=$("#veil"),modal=$("#modal");
 function closeModal(){veil.classList.remove("on");modal.innerHTML="";}
 veil.addEventListener("click",ev=>{if(ev.target===veil)closeModal();});
+// borrar un equipo: por defecto deja un hueco de las mismas U para que no se mueva nada
+function delElement(r,ei){
+  const e=r.elements[ei];if(!e)return;
+  const ultimo=r.elements.slice(ei+1).every(x=>x.type==="hueco");   // debajo no hay nada que se pueda mover
+  if(e.type==="hueco"||ultimo){
+    if(!confirm(`¿Borrar "${e.name||"HUECO LIBRE"}"${e.type==="hueco"?"":" y sus cables"}?`))return;
+    dropLinksOf([e.id]);r.elements.splice(ei,1);save();render();return;
+  }
+  const cab=S.links.filter(l=>l.a.el===e.id||l.b.el===e.id).length+DB.xlinks.filter(l=>l.a.el===e.id||l.b.el===e.id).length;
+  modal.innerHTML=`<h3>Borrar ${esc(e.name)}</h3>
+  <div class="body"><div class="hint">Se borra el equipo${cab?` y sus <b>${cab}</b> cable${cab>1?"s":""}`:""}. ¿Qué hacemos con sus <b>${e.u||1} U</b>?</div></div>
+  <div class="foot"><button class="btn" id="m_cancel">Cancelar</button><button class="btn" id="m_up">Borrar y subir los de abajo</button><button class="btn acc" id="m_ok">Borrar y dejar el hueco</button></div>`;
+  veil.classList.add("on");
+  const fin=hueco=>{
+    dropLinksOf([e.id]);
+    if(hueco)r.elements.splice(ei,1,E("HUECO LIBRE","","hueco",1,1,{u:e.u||1,span:e.span||12}));
+    else r.elements.splice(ei,1);
+    save();closeModal();render();toast(hueco?"Borrado; su sitio queda como hueco libre":"Borrado");
+  };
+  $("#m_cancel").onclick=closeModal;$("#m_up").onclick=()=>fin(false);$("#m_ok").onclick=()=>fin(true);
+  setTimeout(()=>{const b=$("#m_ok");if(b)b.focus();},40);
+}
 
 function editLink(id,isNew){
   const l=findLink(id);if(!l)return;
@@ -2494,8 +2516,10 @@ addEventListener("beforeunload",ev=>{
 });
 
 /* ---------- versión y novedades ---------- */
-const VERSION="2.1";
+const VERSION="2.2";
 const NEWS=[
+ {v:"2.2",d:"14 de octubre de 2026",items:[
+   "Al borrar un equipo ya no se descoloca el rack: su sitio queda como hueco libre de las mismas U. Si prefieres que suban los de abajo, también se puede elegir."]},
  {v:"2.1",d:"14 de octubre de 2026",items:[
    "Deshacer y rehacer con Ctrl+Z / Ctrl+Y (o con ↶ ↷ en la barra).",
    "Colocar bocas: Juntar, Repartir, Alinear y Ordenar ya no las montan unas encima de otras. Si no caben en una fila pasan a la siguiente, y «por columnas» las deja de dos en dos como en un switch.",

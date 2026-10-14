@@ -14,7 +14,7 @@ Tiene una herramienta hermana, **[SubnetScope](https://github.com/marcosblg/subn
 
 ### 👉 [Pruébalo ahora en el navegador](https://marcosblg.github.io/rackscope/)
 
-> 🆕 **v2.1** (14 de octubre de 2026): deshacer con Ctrl+Z, bocas que ya no se solapan al colocarlas, ancho de rack ajustable y exportaciones sin enseñar todo el cableado. Viene de la v2.0: cables entre salas, trabajo en equipo, bocas SFP, tipos propios y copiar racks. [Ver todas las novedades](CHANGELOG.md)
+> 🆕 **v2.2** (14 de octubre de 2026): borrar un equipo ya no descoloca el rack, deshacer con Ctrl+Z, bocas que ya no se solapan al colocarlas, ancho de rack ajustable y exportaciones sin enseñar todo el cableado. Viene de la v2.0: cables entre salas, trabajo en equipo, bocas SFP, tipos propios y copiar racks. [Ver todas las novedades](CHANGELOG.md)
 
 No hay que instalar ni descargar nada: el enlace abre la herramienta con una sala de ejemplo. Pulsa **▶ Ver demo** para la visita guiada.
 

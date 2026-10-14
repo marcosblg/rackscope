@@ -2,6 +2,10 @@
 
 # Novedades de RackScope
 
+## v2.2 — 14 de octubre de 2026
+
+- **Borrar sin descolocar** ([#10](https://github.com/marcosblg/rackscope/issues/10)): al borrar un equipo, su sitio queda como *hueco libre* de las mismas U y los de abajo no se mueven. Si prefieres que suban, eliges *Borrar y subir los de abajo*. Si es el último del rack, se borra sin preguntar.
+
 ## v2.1 — 14 de octubre de 2026
 
 Arreglos y mejoras pedidos en las *issues* [#7](https://github.com/marcosblg/rackscope/issues/7) y [#8](https://github.com/marcosblg/rackscope/issues/8).
@@ -55,6 +59,10 @@ Primera versión pública.
 ---
 
 # What's new in RackScope
+
+## v2.2 — October 14, 2026
+
+- **Delete without shifting** ([#10](https://github.com/marcosblg/rackscope/issues/10)): when you delete a device its place becomes a free gap of the same U, so nothing below moves. If you want them to move up, pick *Borrar y subir los de abajo*. The last device in a rack is deleted without asking.
 
 ## v2.1 — October 14, 2026
 

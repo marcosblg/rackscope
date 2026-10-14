@@ -14,7 +14,7 @@ It has a sister tool, **[SubnetScope](https://github.com/marcosblg/subnetscope)*
 
 ### 👉 [Try it right now in your browser](https://marcosblg.github.io/rackscope/)
 
-> 🆕 **v2.1** (October 14, 2026): undo with Ctrl+Z, ports that no longer overlap when arranged, adjustable rack width and exports that do not reveal all your cabling. On top of v2.0: cables between rooms, teamwork, SFP ports, custom types and rack copying. [See the full changelog](CHANGELOG.md#whats-new-in-rackscope)
+> 🆕 **v2.2** (October 14, 2026): deleting a device no longer shifts the rack, undo with Ctrl+Z, ports that no longer overlap when arranged, adjustable rack width and exports that do not reveal all your cabling. On top of v2.0: cables between rooms, teamwork, SFP ports, custom types and rack copying. [See the full changelog](CHANGELOG.md#whats-new-in-rackscope)
 
 Nothing to install or download: the link opens the tool with a sample room. Hit **▶ Ver demo** for the guided tour.
 
