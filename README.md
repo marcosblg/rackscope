@@ -14,7 +14,7 @@ Tiene una herramienta hermana, **[SubnetScope](https://github.com/marcosblg/subn
 
 ### 👉 [Pruébalo ahora en el navegador](https://marcosblg.github.io/rackscope/)
 
-> 🆕 **v2.2** (14 de octubre de 2026): borrar un equipo ya no descoloca el rack, deshacer con Ctrl+Z, bocas que ya no se solapan al colocarlas, ancho de rack ajustable y exportaciones sin enseñar todo el cableado. Viene de la v2.0: cables entre salas, trabajo en equipo, bocas SFP, tipos propios y copiar racks. [Ver todas las novedades](CHANGELOG.md)
+> 🆕 **v2.3** (15 de octubre de 2026): etiqueta propia para cada boca, color de fondo por equipo y elegir en qué U empieza un equipo al añadirlo. Viene de la v2.2: borrar sin descolocar el rack, deshacer con Ctrl+Z y exportaciones sin enseñar todo el cableado. [Ver todas las novedades](CHANGELOG.md)
 
 No hay que instalar ni descargar nada: el enlace abre la herramienta con una sala de ejemplo. Pulsa **▶ Ver demo** para la visita guiada.
 
@@ -28,6 +28,7 @@ No hay que instalar ni descargar nada: el enlace abre la herramienta con una sal
 - Clic en una boca y clic en otra: queda el cable dibujado entre ambas.
 - Cada conexión lleva tipo de cable (Cat5e, Cat6, Cat6a/7, fibra multimodo, fibra monomodo, DAC/Twinax, eléctrico), etiqueta corta y una nota libre.
 - **Clic en cualquier boca y te dice al instante a dónde va**: equipo, número de boca exacto, rack, tipo de cable y la nota. Sin seguir el cable con la vista.
+- **Etiqueta propia para cada boca**: la boca del patch panel se llama igual que la roseta a la que llega. Sale en su ficha, en el buscador y en las exportaciones.
 - Al pasar el ratón por encima ya sale un aviso rápido con el destino.
 - La ventana de la boca se arrastra por su cabecera: al conectar se reduce y, si tapa la boca de destino, la apartas.
 - Las bocas ocupadas se pintan del color del tipo de cable, así ves de un vistazo qué está libre.
@@ -38,7 +39,8 @@ No hay que instalar ni descargar nada: el enlace abre la herramienta con una sal
 - Numeración horizontal (1…24) o vertical (1-2 / 3-4, como los switches reales), con separación por bloques y opción de impares abajo y pares arriba.
 - **Bocas SFP aparte** con su propia numeración (S1, S2…), a la derecha o a la izquierda del bloque normal.
 - **Tipos de equipo propios** (router, centralita, KVM…) con su nombre y su color.
-- Cajas de ancho y alto variable: barras de 1U, servidores de 2U, cabinas cuadradas, varias cajas en la misma fila.
+- Cajas de ancho y alto variable: barras de 1U, servidores de 2U, cabinas cuadradas, varias cajas en la misma fila, cada una con su **color de fondo** si quieres.
+- Al añadir un equipo eliges **en qué U empieza**: el espacio que quede por encima pasa a ser hueco libre, y si cae dentro de un hueco reservado, el hueco se parte.
 - Herramientas para cuadrar bocas: selección múltiple con Ctrl/Shift, selección por recuadro, mover en grupo, alinear, repartir, juntar, ordenar por número y ajuste fino con las flechas. Lo que no cabe en una fila pasa a la siguiente, sin montar unas bocas sobre otras.
 - Deshacer y rehacer con Ctrl+Z / Ctrl+Y.
 - El ancho de cada rack se cambia arrastrando su borde derecho.

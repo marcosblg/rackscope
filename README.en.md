@@ -14,7 +14,7 @@ It has a sister tool, **[SubnetScope](https://github.com/marcosblg/subnetscope)*
 
 ### 👉 [Try it right now in your browser](https://marcosblg.github.io/rackscope/)
 
-> 🆕 **v2.2** (October 14, 2026): deleting a device no longer shifts the rack, undo with Ctrl+Z, ports that no longer overlap when arranged, adjustable rack width and exports that do not reveal all your cabling. On top of v2.0: cables between rooms, teamwork, SFP ports, custom types and rack copying. [See the full changelog](CHANGELOG.md#whats-new-in-rackscope)
+> 🆕 **v2.3** (October 15, 2026): a custom label for every port, a background colour per device, and choosing the starting U when you add one. Following v2.2: deleting a device no longer shifts the rack, undo with Ctrl+Z, and exports that do not reveal the whole cabling. [See all the changes](CHANGELOG.md)
 
 Nothing to install or download: the link opens the tool with a sample room. Hit **▶ Ver demo** for the guided tour.
 
@@ -27,6 +27,7 @@ Nothing to install or download: the link opens the tool with a sample room. Hit 
 **Document the cabling**
 - Click one port, click another: the cable is drawn between them.
 - Every connection carries a cable type (Cat5e, Cat6, Cat6a/7, multimode fiber, single-mode fiber, DAC/Twinax, power), a short label and a free-form note.
+- **A custom label for every port**: the patch panel port carries the same name as the wall socket it reaches. It shows in the port card, in the search box and in the exports.
 - **Click any port and it tells you instantly where it goes**: device, exact port number, rack, cable type and your note. No tracing cables by eye.
 - Hovering already pops up a quick hint with the destination.
 - The port window can be dragged by its header: while connecting it shrinks, and if it covers the destination port you just move it aside.
