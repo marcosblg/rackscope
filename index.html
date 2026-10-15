@@ -123,6 +123,7 @@ body.mv #mvbar{display:flex}
 
 .el{background:var(--panel);border:1px solid var(--line2);border-radius:9px;padding:7px 9px 8px;position:relative;transition:.15s;grid-column:span 12;display:flex;flex-direction:column;min-width:0}
 .el:hover{border-color:var(--acc)}
+.el.tinted .el-sub,.el.tinted .badge,.el.tinted .ubadge{mix-blend-mode:normal}
 .el.dim{opacity:.25}
 .el.hit{border-color:var(--acc);box-shadow:0 0 0 2px #59a9ff55}
 .el-head{display:flex;align-items:baseline;gap:8px;margin-bottom:6px;min-height:16px}
@@ -159,6 +160,7 @@ body.mv #mvbar{display:flex}
 .port.used{color:var(--tx)}
 .port.sel{background:var(--acc)!important;border-color:#fff!important;color:#fff;box-shadow:0 0 0 4px #59a9ff66;z-index:5}
 .port.peer{border-color:var(--warn)!important;box-shadow:0 0 0 4px #ffb02066;z-index:5}
+.port.named{box-shadow:inset 0 -3px 0 var(--gold)}
 .port.multi::after{content:"";position:absolute;top:-3px;right:-3px;width:7px;height:7px;border-radius:50%;background:var(--warn);border:1.5px solid var(--panel)}
 .ports.dense .port{width:17px;height:17px;font-size:0}
 body.mv .ports{outline:1px dashed var(--acc);outline-offset:3px;border-radius:6px;cursor:crosshair}
@@ -195,6 +197,10 @@ body.mv .port:active{cursor:grabbing}
 #pop .ph .p{font-family:var(--m);font-size:11px;background:var(--accbg);color:var(--acc);padding:3px 8px;border-radius:5px;border:1px solid var(--accbd);font-weight:700}
 #pop .ph .x{margin-left:auto;background:none;border:0;color:var(--tx3);font-size:16px;line-height:1}
 #pop .ph .x:hover{color:var(--bad)}
+.pnrow{border-top:1px solid var(--line2);margin-top:4px;padding-top:9px}
+.pnrow label{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.7px;color:var(--tx3);font-weight:700;margin-bottom:4px}
+.pnrow input{width:100%;background:var(--bg2);border:1.5px solid var(--line2);border-radius:7px;padding:7px 9px;font-size:12.5px;outline:none}
+.pnrow input:focus{border-color:var(--acc);box-shadow:0 0 0 3px #59a9ff33}
 #pop .pb{padding:11px 12px;max-height:340px;overflow:auto}
 .conn{background:var(--bg2);border:1px solid var(--line2);border-radius:9px;padding:9px 10px;margin-bottom:8px}
 .conn .to{font-size:12.5px;font-weight:700;display:flex;align-items:center;gap:6px;margin-bottom:3px}
@@ -530,6 +536,11 @@ function migrate(d,xt){
     r.elements.forEach(e=>{
       if(e.u==null)e.u=e.h?Math.max(1,Math.round(e.h/30)):1;   // el alto en px de antes pasa a U
       e.h=0;
+      e.bg=e.bg?safeColor(e.bg):"";
+      if(e.pn&&typeof e.pn==="object"&&!Array.isArray(e.pn)){
+        const o={};Object.keys(e.pn).forEach(k=>{const v=str(e.pn[k]).trim().slice(0,40);if(v&&/^[0-9]+$/.test(k))o[k]=v;});
+        if(Object.keys(o).length)e.pn=o;else delete e.pn;
+      }else delete e.pn;
     });
   });
   d.racks.forEach(r=>r.elements.forEach(e=>{
@@ -806,8 +817,17 @@ function endsHere(fn){
 const typeName=t=>has(TYPES,t)?TYPES[t]:(XT[t]?XT[t].name:"Otro");
 const usedU=r=>r.elements.reduce((a,e)=>a+(e.type==="hueco"?0:(+e.u||1)),0);
 // las SFP van detras de las bocas normales y se numeran aparte: S1, S2...
-function portLabel(e,p){const m=e.ports-(e.sfp||0);return p>m?"SFP "+(p-m):String(p);}
-function portName(e,p){const m=e.ports-(e.sfp||0);return p>m?"SFP "+(p-m):"boca "+p;}
+const pnOf=(e,p)=>{const o=e&&e.pn;return o&&typeof o==="object"?str(o[p]).trim():"";};
+function setPn(e,p,v){
+  v=str(v).trim().slice(0,40);
+  if(!e.pn||typeof e.pn!=="object")e.pn={};
+  if(v)e.pn[p]=v; else delete e.pn[p];
+  if(!Object.keys(e.pn).length)delete e.pn;
+}
+// etiqueta corta: la que puso el usuario, o el numero
+function portLabel(e,p){const n=pnOf(e,p);if(n)return n;const m=e.ports-(e.sfp||0);return p>m?"SFP "+(p-m):String(p);}
+// nombre largo para frases: "boca 3" o "boca 3 · 214-A"
+function portName(e,p){const m=e.ports-(e.sfp||0),b=p>m?"SFP "+(p-m):"boca "+p,n=pnOf(e,p);return n?b+" · "+n:b;}
 // orden en que se dibujan las bocas: bloque normal y bloque SFP; en numeracion vertical por
 // columnas completas y, si se pide, con los pares arriba (impares abajo)
 function portSeq(e){
@@ -882,6 +902,41 @@ function render(){
 const UPX=34;      // altura minima por U (el contenido puede pedir mas)
 const UROW=26;     // alto de cada U libre en la regla
 // dibuja la regla lateral: cada equipo con su rango de U y los huecos libres uno a uno
+// filas tal y como fluyen en la rejilla de 12 columnas, con la U en la que empieza cada una
+function uRows(rk){
+  const rows=[];let cur=null,ancho=0;
+  (rk.elements||[]).forEach((e,i)=>{
+    const sp=Math.max(1,Math.min(12,+e.span||12));
+    if(!cur||ancho+sp>12){cur={idx:[i],u:Math.max(1,+e.u||1),hueco:e.type==="hueco"};rows.push(cur);ancho=sp;}
+    else{cur.idx.push(i);cur.u=Math.max(cur.u,Math.max(1,+e.u||1));cur.hueco=cur.hueco&&e.type==="hueco";ancho+=sp;}
+  });
+  let off=0;rows.forEach(r=>{r.ini=off+1;r.fin=off+r.u;off+=r.u;});
+  return rows;
+}
+const uLibre=rk=>{const r=uRows(rk);return (r.length?r[r.length-1].fin:0)+1;};   // primera U libre al final
+function nuevoHueco(u){return {id:nid("e"),name:"HUECO LIBRE",sub:"",type:"hueco",ports:1,rows:1,
+  u:Math.max(1,u),span:12,h:0,pmode:"grid",palign:"left",pos:null,flow:"row",group:0};}
+// mete el equipo empezando en la U pedida, partiendo huecos o rellenando lo que falte
+function colocarEnU(rk,e,uIni){
+  const n=Math.max(1,+e.u||1),rows=uRows(rk),ocupadas=rows.length?rows[rows.length-1].fin:0;
+  if(uIni>ocupadas){                                   // por debajo de lo documentado: relleno con hueco
+    const falta=uIni-ocupadas-1;
+    if(falta>0)rk.elements.push(nuevoHueco(falta));
+    rk.elements.push(e);
+    return {ok:true};
+  }
+  const fila=rows.find(r=>uIni>=r.ini&&uIni<=r.fin);
+  if(!fila)       {rk.elements.push(e);return {ok:true};}
+  if(!fila.hueco) {rk.elements.splice(fila.idx[0],0,e);return {ok:true,aviso:"La U "+uIni+" estaba ocupada: el equipo se ha colocado justo encima."};}
+  const h=rk.elements[fila.idx[0]];                    // es un hueco: se parte
+  const antes=uIni-fila.ini, despues=fila.fin-(uIni+n-1);
+  const trozos=[];
+  if(antes>0)trozos.push(nuevoHueco(antes));
+  trozos.push(e);
+  if(despues>0)trozos.push(nuevoHueco(despues));
+  rk.elements.splice(fila.idx[0],1,...trozos);
+  return {ok:true,aviso:despues<0?"El equipo no cabía entero en el hueco: lo de debajo baja "+(-despues)+" U.":""};
+}
 function layoutU(){
   racksEl.querySelectorAll(".rack").forEach(rn=>{
     const rk=S.racks.find(x=>x.id===rn.dataset.rack);if(!rk)return;
@@ -930,6 +985,7 @@ function elNode(e,i,r){
   const d=document.createElement("div");
   d.className="el t-"+(has(TYPES,e.type)?e.type:"custom");d.dataset.el=e.id;
   if(XT[e.type])d.style.setProperty("--tc",XT[e.type].color);
+  if(e.bg){d.style.background=e.bg;d.classList.add("tinted");}
   d.style.gridColumn="span "+(e.span||12);
   if((e.span||12)<12)d.classList.add("part");      // su texto no ensancha el rack
   d.style.minHeight=(Math.max(1,+e.u||1)*UPX)+"px";
@@ -970,6 +1026,8 @@ function elNode(e,i,r){
     if(free){const q=pos[p-1]||{x:50,y:50};b.style.left=q.x+"%";b.style.top=q.y+"%";}
     else if(it.sg)b.classList.add("sfpgap");
     else if(g>0&&it.c>0&&it.c%g===0)b.classList.add("gap");
+    const pnm=pnOf(e,p);
+    if(pnm){b.classList.add("named");b.title=(b.title?b.title+" — ":"")+pnm;}
     if(sel.has(e.id+"|"+p))b.classList.add("msel");
     const ls=linksOf(e.id,p);
     if(ls.length){
@@ -1105,7 +1163,23 @@ function showPop(elId,port,node){
       </div>`;
     }
   }
+  h+=`<div class="pnrow"><label for="pn_in">Etiqueta de esta boca</label>
+      <input id="pn_in" maxlength="40" value="${esc(pnOf(e,port))}" placeholder="roseta 214-A, despacho 3, cámara pasillo…"></div>`;
   $("#popB").innerHTML=h;
+  const pin=$("#pn_in");
+  if(pin){
+    const guarda=()=>{
+      const v=pin.value;
+      if(v.trim()===pnOf(e,port))return;
+      setPn(e,port,v);save();
+      const nd=portNode(elId,port);render();
+      const n2=portNode(elId,port);
+      if(n2)showPop(elId,port,n2);
+      toast(v.trim()?"Boca renombrada":"Etiqueta quitada");
+    };
+    pin.onkeydown=ev=>{if(ev.key==="Enter"){ev.preventDefault();pin.blur();}};
+    pin.onblur=guarda;
+  }
   pop.classList.add("on");
   openNode=node;
   placePop();
@@ -1311,6 +1385,15 @@ function editElement(rack,e){
       <div class="fld"><label>Altura en U</label><input id="e_u" type="number" min="1" max="20" value="${e.u||1}"></div>
     </div>
     <div class="grid2">
+      <div class="fld"${isNew?"":' style="display:none"'}><label>Empieza en la U</label>
+        <input id="e_uini" type="number" min="1" max="60" value="${isNew&&rack?uLibre(rack):1}"></div>
+      <div class="fld"><label>Color de fondo</label>
+        <div style="display:flex;gap:6px;align-items:center">
+          <input id="e_bg" type="color" value="${e.bg||"#1a2233"}" style="height:40px;padding:3px;flex:1">
+          <button type="button" class="btn sm" id="e_bgoff">Sin color</button>
+        </div></div>
+    </div>
+    <div class="grid2">
       <div class="fld"><label>&nbsp;</label>
         <span class="hint">La altura la marca la U: 1U una tira fina, 2U el doble… También puedes arrastrar el borde inferior de la caja en el rack.</span></div>
     </div>
@@ -1348,6 +1431,9 @@ function editElement(rack,e){
     $("#h_free").style.display=free?"":"none";$("#w_preset").style.display=free?"":"none";};
   $("#e_pmode").onchange=sync;$("#e_flow").onchange=sync;sync();
   $("#e_type").onchange=()=>{$("#w_newtype").style.display=$("#e_type").value==="__new"?"grid":"none";if($("#e_type").value==="__new")$("#nt_name").focus();};
+  if(!e.bg)$("#e_bg").dataset.off="1";
+  $("#e_bg").oninput=()=>{$("#e_bg").dataset.off="0";};
+  $("#e_bgoff").onclick=()=>{$("#e_bg").dataset.off="1";toast("El equipo usará el color del tema");};
   setTimeout(()=>{const n=$("#e_name");if(n)n.focus();},40);
   $("#m_cancel").onclick=closeModal;
   $("#m_ok").onclick=()=>{
@@ -1378,6 +1464,7 @@ function editElement(rack,e){
     if(Array.isArray(e.pos)){const dp=defaultPos(e);e.pos=e.pos.slice(0,e.ports).map((q,i)=>q||dp[i]);}
     e.span=+$("#e_span").value||12;
     e.u=Math.max(1,Math.min(20,+$("#e_u").value||1));
+    e.bg=$("#e_bg").dataset.off==="1"?"":safeColor($("#e_bg").value);
     e.h=0;
     e.pmode=$("#e_pmode").value;
     e.palign=$("#e_palign").value;
@@ -1390,7 +1477,11 @@ function editElement(rack,e){
       const pre=$("#e_preset").value;
       if(pre)e.pos=presetPos(e.ports,pre);
     }
-    if(isNew)rack.elements.push(e);
+    if(isNew){
+      const ui=Math.max(1,Math.min(60,+$("#e_uini").value||uLibre(rack)));
+      const r=colocarEnU(rack,e,ui);
+      if(r.aviso)toast(r.aviso);
+    }
     else dropLinksOf([e.id],x=>x.port>e.ports);
     save();render();closeModal();
   };
@@ -1886,7 +1977,8 @@ function applyFilter(){
     const e=elById(n.dataset.el);
     const mio=x=>x.el===e.id&&(!x.room||x.room===DB.current);
     const labels=S.links.concat(xHere()).filter(l=>mio(l.a)||mio(l.b)).map(l=>l.label+" "+l.note).join(" ");
-    const hay=(e.name+" "+e.sub+" "+typeName(e.type)+" "+labels).toLowerCase().includes(q);
+    const bocas=e.pn&&typeof e.pn==="object"?Object.values(e.pn).join(" "):"";
+    const hay=(e.name+" "+e.sub+" "+typeName(e.type)+" "+labels+" "+bocas).toLowerCase().includes(q);
     n.classList.toggle("dim",!hay);n.classList.toggle("hit",hay);
   });
 }
@@ -2002,7 +2094,7 @@ function snapshotSVG(){
     rn.querySelectorAll(".el").forEach(en=>{
       const e=elById(en.dataset.el);if(!e)return;
       const er=R(en);
-      g+=B(er,"#f8fafc","#64748b",1.2,6);
+      g+=B(er,e.bg||"#f8fafc","#64748b",1.2,6);
       g+=T(er.x+8,er.y+15,e.name,11,"#0f172a",700);
       if(e.sub)g+=T(er.x+8+Math.min(e.name.length*6.6+10,260),er.y+15,e.sub,9,"#475569",400);
       en.querySelectorAll(".port").forEach(pn=>{
@@ -2516,8 +2608,12 @@ addEventListener("beforeunload",ev=>{
 });
 
 /* ---------- versión y novedades ---------- */
-const VERSION="2.2";
+const VERSION="2.3";
 const NEWS=[
+ {v:"2.3",d:"15 de octubre de 2026",items:[
+   "Cada boca puede llevar su propia etiqueta: la pones en su ficha y aparece en el aviso, en el buscador y en las exportaciones. Pensado para que la boca del patch panel se llame igual que la roseta.",
+   "Color de fondo propio para cada equipo, desde su ficha ✎.",
+   "Al añadir un equipo puedes decir en qué U empieza: si hay hueco por debajo se rellena solo, y si cae dentro de un hueco reservado, el hueco se parte."]},
  {v:"2.2",d:"14 de octubre de 2026",items:[
    "Al borrar un equipo ya no se descoloca el rack: su sitio queda como hueco libre de las mismas U. Si prefieres que suban los de abajo, también se puede elegir."]},
  {v:"2.1",d:"14 de octubre de 2026",items:[

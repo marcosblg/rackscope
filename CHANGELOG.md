@@ -2,6 +2,12 @@
 
 # Novedades de RackScope
 
+## v2.3 — 15 de octubre de 2026
+
+- **Etiqueta propia para cada boca** ([#11](https://github.com/marcosblg/rackscope/issues/11)): pulsa una boca y escribe su nombre en *Etiqueta de esta boca*. Normalmente una boca de patch panel es el cable que va a una roseta, así que ahora puedes llamarla igual que la etiqueta de la roseta. La etiqueta sale en la ficha de la boca, en el aviso al pasar el ratón, en el buscador y en el CSV y el PDF. Las bocas con etiqueta llevan una marca dorada debajo.
+- **Color de fondo por equipo** ([#12](https://github.com/marcosblg/rackscope/issues/12)): en la ficha del equipo ✎ eliges su color de fondo, o *Sin color* para que use el del tema. El color se respeta al exportar a PNG, SVG y PDF.
+- **Decir en qué U empieza un equipo** ([#13](https://github.com/marcosblg/rackscope/issues/13)): al crear un equipo, el campo *Empieza en la U* viene con la primera U libre. Si eliges una más abajo, el espacio intermedio queda como hueco libre; si eliges una U que cae dentro de un hueco reservado, el hueco se parte y el equipo entra en su sitio. Si la U ya está ocupada, el equipo se coloca justo encima y se avisa.
+
 ## v2.2 — 14 de octubre de 2026
 
 - **Borrar sin descolocar** ([#10](https://github.com/marcosblg/rackscope/issues/10)): al borrar un equipo, su sitio queda como *hueco libre* de las mismas U y los de abajo no se mueven. Si prefieres que suban, eliges *Borrar y subir los de abajo*. Si es el último del rack, se borra sin preguntar.
@@ -59,6 +65,12 @@ Primera versión pública.
 ---
 
 # What's new in RackScope
+
+## v2.3 — October 15, 2026
+
+- **Custom label for every port** ([#11](https://github.com/marcosblg/rackscope/issues/11)): click a port and name it under *Etiqueta de esta boca*. A patch panel port is usually the cable running to a wall socket, so now you can give it the same label as the socket. It shows in the port card, in the hover hint, in the search box and in the CSV and PDF exports. Labelled ports carry a gold mark underneath.
+- **Per-device background colour** ([#12](https://github.com/marcosblg/rackscope/issues/12)): pick it in the device card ✎, or *Sin color* to follow the theme. The colour is kept in the PNG, SVG and PDF exports.
+- **Choose the starting U** ([#13](https://github.com/marcosblg/rackscope/issues/13)): when creating a device, *Empieza en la U* defaults to the first free U. Pick a lower one and the space in between becomes a free gap; pick a U inside a reserved gap and the gap is split so the device fits in place. If the U is taken, the device goes right above it and you are told.
 
 ## v2.2 — October 14, 2026
 
