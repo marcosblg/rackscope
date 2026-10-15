@@ -2,10 +2,6 @@
 
 # Hoja de ruta
 
-## En marcha
-
-- **Historial de cambios sobre archivo compartido** ([#9](https://github.com/marcosblg/rackscope/issues/9)): el JSON vinculado vive en una carpeta de red, cada navegador recuerda *quién soy*, el archivo guarda quién cambió qué y cuándo, y se avisa si alguien lo modificó mientras editabas. Quién puede ver y quién puede editar lo deciden los permisos de la carpeta.
-
 ## Más adelante
 
 - Etiquetas con QR imprimibles
@@ -21,16 +17,13 @@
 Estas cosas no se van a hacer, porque romperían lo que hace útil a esta herramienta:
 
 - Servidor, base de datos o cuentas de usuario propias
+- Usuarios, perfiles de permisos e historial de quién cambió qué ([#9](https://github.com/marcosblg/rackscope/issues/9))
 - Agentes que escaneen la red
 - Tickets de incidencias
 
 ---
 
 # Roadmap
-
-## In progress
-
-- **Change history on a shared file** ([#9](https://github.com/marcosblg/rackscope/issues/9)): the linked JSON lives in a network folder, each browser remembers *who I am*, the file records who changed what and when, and you are warned if someone modified it while you were editing. Who can view and who can edit is decided by the folder permissions.
 
 ## Later
 
@@ -47,5 +40,6 @@ Estas cosas no se van a hacer, porque romperían lo que hace útil a esta herram
 These will not be built, because they would break what makes this tool useful:
 
 - A server, database or its own user accounts
+- Users, permission profiles and a who-changed-what history ([#9](https://github.com/marcosblg/rackscope/issues/9))
 - Agents that scan the network
 - Incident tickets
