@@ -16,7 +16,9 @@ And a third one, **[AssetScope](https://github.com/marcosblg/assetscope)**, for 
 
 ### 👉 [Try it right now in your browser](https://marcosblg.github.io/rackscope/)
 
-> 🆕 **v2.3** (October 15, 2026): a custom label for every port, a background colour per device, and choosing the starting U when you add one. Following v2.2: deleting a device no longer shifts the rack, undo with Ctrl+Z, and exports that do not reveal the whole cabling. [See all the changes](CHANGELOG.md)
+🌐 **In English and Spanish**: it opens in your browser's language and the **EN / ES** button switches it.
+
+> 🆕 **v2.4** (October 16, 2026): now in English too. On top of v2.3: a custom label for every port, a background colour per device, and choosing the starting U when you add one. Following v2.2: deleting a device no longer shifts the rack, undo with Ctrl+Z, and exports that do not reveal the whole cabling. [See all the changes](CHANGELOG.md)
 
 Nothing to install or download: the link opens the tool with a sample room. Hit **▶ Ver demo** for the guided tour.
 

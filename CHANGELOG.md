@@ -2,6 +2,10 @@
 
 # Novedades de RackScope
 
+## v2.4 — 16 de octubre de 2026
+
+- **Inglés**: la aplicación sale en inglés si el navegador está en inglés, y con el botón EN / ES se cambia cuando quieras. Los datos que escribes no se tocan; los de ejemplo, sí.
+
 ## v2.3 — 15 de octubre de 2026
 
 - **Etiqueta propia para cada boca** ([#11](https://github.com/marcosblg/rackscope/issues/11)): pulsa una boca y escribe su nombre en *Etiqueta de esta boca*. Normalmente una boca de patch panel es el cable que va a una roseta, así que ahora puedes llamarla igual que la etiqueta de la roseta. La etiqueta sale en la ficha de la boca, en el aviso al pasar el ratón, en el buscador y en el CSV y el PDF. Las bocas con etiqueta llevan una marca dorada debajo.
@@ -66,6 +70,10 @@ Primera versión pública.
 ---
 
 # What's new in RackScope
+
+## v2.4 — October 16, 2026
+
+- **English**: the app shows in English if your browser is in English, and the EN / ES button switches language whenever you like. Your own data is never touched; the sample data is translated.
 
 ## v2.3 — October 15, 2026
 

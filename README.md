@@ -16,7 +16,9 @@ Y una tercera, **[AssetScope](https://github.com/marcosblg/assetscope)**, para e
 
 ### 👉 [Pruébalo ahora en el navegador](https://marcosblg.github.io/rackscope/)
 
-> 🆕 **v2.3** (15 de octubre de 2026): etiqueta propia para cada boca, color de fondo por equipo y elegir en qué U empieza un equipo al añadirlo. Viene de la v2.2: borrar sin descolocar el rack, deshacer con Ctrl+Z y exportaciones sin enseñar todo el cableado. [Ver todas las novedades](CHANGELOG.md)
+🌐 **En español y en inglés**: sale en el idioma de tu navegador y se cambia con el botón **EN / ES**.
+
+> 🆕 **v2.4** (16 de octubre de 2026): ahora también en inglés. Viene de la v2.3: etiqueta propia para cada boca, color de fondo por equipo y elegir en qué U empieza un equipo al añadirlo. Viene de la v2.2: borrar sin descolocar el rack, deshacer con Ctrl+Z y exportaciones sin enseñar todo el cableado. [Ver todas las novedades](CHANGELOG.md)
 
 No hay que instalar ni descargar nada: el enlace abre la herramienta con una sala de ejemplo. Pulsa **▶ Ver demo** para la visita guiada.
 
