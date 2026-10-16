@@ -5,12 +5,12 @@
 ## Más adelante
 
 - Etiquetas con QR imprimibles
-- AssetScope: inventario, garantías y fin de soporte
 
 ## Hecho
 
 - Hueco libre al eliminar un equipo ([#10](https://github.com/marcosblg/rackscope/issues/10)) — v2.2
 - Etiqueta por boca, color de fondo y U de inicio ([#11](https://github.com/marcosblg/rackscope/issues/11), [#12](https://github.com/marcosblg/rackscope/issues/12), [#13](https://github.com/marcosblg/rackscope/issues/13)) — v2.3
+- [AssetScope](https://github.com/marcosblg/assetscope), la tercera herramienta: inventario, garantías y fin de soporte
 
 ## Fuera del alcance
 
@@ -28,12 +28,12 @@ Estas cosas no se van a hacer, porque romperían lo que hace útil a esta herram
 ## Later
 
 - Printable QR labels
-- AssetScope: inventory, warranties and end of support
 
 ## Done
 
 - Free gap when deleting a device ([#10](https://github.com/marcosblg/rackscope/issues/10)) — v2.2
 - Per-port label, background colour and starting U ([#11](https://github.com/marcosblg/rackscope/issues/11), [#12](https://github.com/marcosblg/rackscope/issues/12), [#13](https://github.com/marcosblg/rackscope/issues/13)) — v2.3
+- [AssetScope](https://github.com/marcosblg/assetscope), the third tool: inventory, warranties and end of support
 
 ## Out of scope
 

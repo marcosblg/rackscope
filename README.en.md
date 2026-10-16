@@ -12,6 +12,8 @@ Every device is defined with the port count it actually has, from 1 to 96: 12, 1
 
 It has a sister tool, **[SubnetScope](https://github.com/marcosblg/subnetscope)**, to plan the network's IPs and VLANs: send it the devices you document here, assign their IPs there and then bring those IPs back into RackScope. [Try it](https://marcosblg.github.io/subnetscope/).
 
+And a third one, **[AssetScope](https://github.com/marcosblg/assetscope)**, for inventory: what each device is, its serial number and when its warranty or support runs out. It imports RackScope devices with their room, rack and U. [Try it](https://marcosblg.github.io/assetscope/).
+
 ### 👉 [Try it right now in your browser](https://marcosblg.github.io/rackscope/)
 
 > 🆕 **v2.3** (October 15, 2026): a custom label for every port, a background colour per device, and choosing the starting U when you add one. Following v2.2: deleting a device no longer shifts the rack, undo with Ctrl+Z, and exports that do not reveal the whole cabling. [See all the changes](CHANGELOG.md)

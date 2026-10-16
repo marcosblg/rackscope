@@ -12,6 +12,8 @@ Cada equipo se define con el número de bocas que tenga de verdad, de 1 a 96: pa
 
 Tiene una herramienta hermana, **[SubnetScope](https://github.com/marcosblg/subnetscope)**, para planificar las IPs y VLANs de la red: le pasas los equipos que documentes aquí, les das IP allí y luego devuelves esas IPs a RackScope. [Pruébala](https://marcosblg.github.io/subnetscope/).
 
+Y una tercera, **[AssetScope](https://github.com/marcosblg/assetscope)**, para el inventario: qué es cada equipo, su número de serie y cuándo vence su garantía o su soporte. Se trae los equipos de RackScope con su sala, rack y U. [Pruébala](https://marcosblg.github.io/assetscope/).
+
 ### 👉 [Pruébalo ahora en el navegador](https://marcosblg.github.io/rackscope/)
 
 > 🆕 **v2.3** (15 de octubre de 2026): etiqueta propia para cada boca, color de fondo por equipo y elegir en qué U empieza un equipo al añadirlo. Viene de la v2.2: borrar sin descolocar el rack, deshacer con Ctrl+Z y exportaciones sin enseñar todo el cableado. [Ver todas las novedades](CHANGELOG.md)
