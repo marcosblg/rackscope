@@ -17,3 +17,7 @@ PUBLICAR.md
 
 # modo servidor: datos del equipo, nunca al repositorio
 datos/
+
+# notas para Claude, no se publican
+CLAUDE.md
+TRASPASO.md
