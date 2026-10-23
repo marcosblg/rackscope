@@ -14,6 +14,8 @@ It has a sister tool, **[SubnetScope](https://github.com/marcosblg/subnetscope)*
 
 And a third one, **[AssetScope](https://github.com/marcosblg/assetscope)**, for inventory: what each device is, its serial number and when its warranty or support runs out. It imports RackScope devices with their room, rack and U. [Try it](https://marcosblg.github.io/assetscope/).
 
+And a fourth one, **[CertScope](https://github.com/marcosblg/certscope)**, for TLS certificates and domains: paste the PEM and it warns you before they expire. [Try it](https://marcosblg.github.io/certscope/).
+
 ### 👉 [Try it right now in your browser](https://marcosblg.github.io/rackscope/)
 
 🌐 **In English and Spanish**: it opens in your browser's language and the **EN / ES** button switches it.
