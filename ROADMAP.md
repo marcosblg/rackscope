@@ -11,6 +11,7 @@
 - Hueco libre al eliminar un equipo ([#10](https://github.com/marcosblg/rackscope/issues/10)) — v2.2
 - Etiqueta por boca, color de fondo y U de inicio ([#11](https://github.com/marcosblg/rackscope/issues/11), [#12](https://github.com/marcosblg/rackscope/issues/12), [#13](https://github.com/marcosblg/rackscope/issues/13)) — v2.3
 - [AssetScope](https://github.com/marcosblg/assetscope), la tercera herramienta: inventario, garantías y fin de soporte
+- [CertScope](https://github.com/marcosblg/certscope) v1.2: importa los certificados de cert-manager, Prometheus (blackbox_exporter), certbot y win-acme
 
 ## Fuera del alcance
 
@@ -34,6 +35,7 @@ Estas cosas no se van a hacer, porque romperían lo que hace útil a esta herram
 - Free gap when deleting a device ([#10](https://github.com/marcosblg/rackscope/issues/10)) — v2.2
 - Per-port label, background colour and starting U ([#11](https://github.com/marcosblg/rackscope/issues/11), [#12](https://github.com/marcosblg/rackscope/issues/12), [#13](https://github.com/marcosblg/rackscope/issues/13)) — v2.3
 - [AssetScope](https://github.com/marcosblg/assetscope), the third tool: inventory, warranties and end of support
+- [CertScope](https://github.com/marcosblg/certscope) v1.2: imports certificates from cert-manager, Prometheus (blackbox_exporter), certbot and win-acme
 
 ## Out of scope
 

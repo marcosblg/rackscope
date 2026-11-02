@@ -14,7 +14,7 @@ Tiene una herramienta hermana, **[SubnetScope](https://github.com/marcosblg/subn
 
 Y una tercera, **[AssetScope](https://github.com/marcosblg/assetscope)**, para el inventario: qué es cada equipo, su número de serie y cuándo vence su garantía o su soporte. Se trae los equipos de RackScope con su sala, rack y U. [Pruébala](https://marcosblg.github.io/assetscope/).
 
-Y una cuarta, **[CertScope](https://github.com/marcosblg/certscope)**, para los certificados TLS y los dominios: pegas el PEM y te avisa antes de que caduquen. [Pruébala](https://marcosblg.github.io/certscope/).
+Y una cuarta, **[CertScope](https://github.com/marcosblg/certscope)**, para los certificados TLS y los dominios: pegas el PEM o los importas de cert-manager, Prometheus, certbot o win-acme, y te avisa antes de que caduquen. [Pruébala](https://marcosblg.github.io/certscope/).
 
 ### 👉 [Pruébalo ahora en el navegador](https://marcosblg.github.io/rackscope/)
 
