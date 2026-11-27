@@ -191,7 +191,7 @@ body.mv .port:active{cursor:grabbing}
 @keyframes pin{from{opacity:0;transform:translateY(-6px)}}
 #pop .ph{padding:10px 12px;background:var(--panel2);border-bottom:1px solid var(--line2);display:flex;align-items:center;gap:8px;cursor:move;user-select:none;touch-action:none}
 #pop .ph .grip{color:var(--tx3);font-size:12px;letter-spacing:-2px}
-#pop.mini .pb,#pop.mini #popLink,#pop.mini #popRear{display:none}
+#pop.mini .pb,#pop.mini #popLink,#pop.mini #popRear,#pop.mini #popTrace{display:none}
 #pop .wait{display:none;font-size:11.5px;color:var(--tx2);align-self:center;flex:1}
 #pop.mini .wait{display:block}
 #pop .ph .t{font-size:13px;font-weight:700}
@@ -265,7 +265,13 @@ body.mv .port:active{cursor:grabbing}
 .ports.dense .pspc{width:17px;height:17px}
 .port.xr::before{content:"↗";position:absolute;left:-5px;top:-8px;font-size:10px;font-weight:800;color:var(--gold);text-shadow:0 0 2px var(--bg)}
 .conn .xroom{color:var(--gold);font-weight:700}
-#pop .side{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--tx3);margin:2px 0 5px}
+.trace{margin:0;padding-left:22px}
+.trace li{margin:0 0 4px}
+.trace .hop{all:unset;cursor:pointer;display:block;padding:5px 7px;border-radius:7px;border:1px solid var(--line2);background:var(--bg2)}
+.trace .hop:hover,.trace .hop:focus-visible{border-color:var(--acc)}
+.trace .hop .hint{display:block;margin-top:2px}
+.trace .via{margin:4px 0 6px 8px;padding-left:10px;border-left:2px dashed var(--line2);display:flex;flex-wrap:wrap;gap:5px;align-items:center}
+.trace .side,#pop .side{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--tx3);margin:2px 0 5px}
 .el.t-custom{border-left:4px solid var(--tc,#ff9f5c)}
 label.chk{display:flex;gap:8px;align-items:center;font-size:12.5px;color:var(--tx2);cursor:pointer}
 .tlist{display:flex;flex-direction:column;gap:6px}
@@ -387,7 +393,7 @@ label.chk{display:flex;gap:8px;align-items:center;font-size:12.5px;color:var(--t
 <div id="pop">
   <div class="ph" title="Arrastra para mover la ventana"><span class="grip">⋮⋮</span><span class="t" id="popT"></span><span class="p" id="popP"></span><button class="x" id="popX">✕</button></div>
   <div class="pb" id="popB"></div>
-  <div class="pf"><button class="btn acc sm" id="popLink">Conectar esta boca…</button><button class="btn sm" id="popRear" title="Cable fijo por detrás: hacia otro panel o hacia la roseta">Por detrás…</button><span class="wait">Pulsa la boca de destino. Si esta ventana la tapa, arrástrala.</span><button class="btn sm" id="popCancel" style="display:none">Cancelar</button></div>
+  <div class="pf"><button class="btn acc sm" id="popLink">Conectar esta boca…</button><button class="btn sm" id="popTrace" title="Ver el camino completo desde esta boca: patch panels, salas y electrónica">Recorrido</button><button class="btn sm" id="popRear" title="Cable fijo por detrás: hacia otro panel o hacia la roseta">Por detrás…</button><span class="wait">Pulsa la boca de destino. Si esta ventana la tapa, arrástrala.</span><button class="btn sm" id="popCancel" style="display:none">Cancelar</button></div>
 </div>
 
 <div id="veil"><div class="modal" id="modal"></div></div>
@@ -575,6 +581,17 @@ const I18N=(()=>{
 "Conectar esta boca…": "Connect this port…",
 "Conectando": "Connecting",
 "Conectando por detrás": "Connecting at the rear",
+"Recorrido": "Path",
+"Ver el camino completo desde esta boca: patch panels, salas y electrónica": "See the whole path from this port: patch panels, rooms and network gear",
+"El recorrido vuelve a una boca ya vista": "The path returns to a port already visited",
+"Varios cables detrás; se sigue el primero": "Several rear cables; following the first one",
+"Varios cables delante; se sigue el primero": "Several front cables; following the first one",
+"Esta boca no tiene cables.": "This port has no cables.",
+"Copiar texto": "Copy text",
+"Exportar CSV": "Export CSV",
+"No se ha podido copiar": "Could not copy",
+"Paso": "Step",
+"Cara": "Side",
 "Delante": "Front",
 "Detrás": "Rear",
 "Por detrás…": "Rear…",
@@ -1848,6 +1865,7 @@ $("#popLink").onclick=()=>{
   if(!openPort)return;
   setPending({room:DB.current,...openPort});
 };
+$("#popTrace").onclick=()=>{if(openPort)showTrace(DB.current,openPort.el,openPort.port);};
 $("#popRear").onclick=()=>{
   if(!openPort)return;
   if(linksOf(openPort.el,openPort.port).some(l=>l.rear)){toast("Esa boca ya tiene un cable trasero");return;}
@@ -2601,6 +2619,104 @@ function applyFilter(){
   });
 }
 
+/* ---------- recorrido de extremo a extremo ---------- */
+// Desde una boca sigue los cables alternando cara (delante / detrás) en cada boca intermedia,
+// hacia los dos lados, hasta que no hay más cable. Cruza salas por DB.xlinks.
+function trace(rid,el,port){
+  const k=o=>o.room+"|"+o.el+"|"+o.port,start={room:rid,el,port},seen=new Set([k(start)]),warn=[];
+  const far=(l,o)=>{const at=x=>(x.room||o.room)===o.room&&x.el===o.el&&x.port===o.port,x=at(l.a)?l.b:l.a;
+    return {room:x.room||o.room,el:x.el,port:x.port};};
+  const walk=rear=>{
+    const hops=[],links=[];let o=start;
+    for(;;){
+      const ls=linksAt(o.room,o.el,o.port).filter(l=>!!l.rear===rear);
+      if(!ls.length)break;
+      if(ls.length>1)warn.push({o,rear,n:ls.length});
+      const l=ls[0],n=far(l,o);
+      if(seen.has(k(n))){warn.push({o:n,loop:true});break;}
+      seen.add(k(n));hops.push(n);links.push(l);o=n;rear=!rear;
+    }
+    return {hops,links};
+  };
+  const b=walk(true),f=walk(false);              // detrás suele llevar a la roseta, delante a la electrónica
+  const hops=b.hops.reverse().concat([start],f.hops),links=b.links.reverse().concat(f.links);
+  if(links.length>1&&links[links.length-1].rear&&!links[0].rear){hops.reverse();links.reverse();}
+  return {hops,links,warn};
+}
+function hopInfo(o){
+  const r=DB.rooms.find(x=>x.id===o.room),x=r?endIn(r,o):{e:null,rk:null};
+  return {room:r?r.name:"?",rack:x.rk?x.rk.name:"",name:x.e?x.e.name:"?",port:x.e?portName(x.e,o.port):"boca "+o.port,
+    label:x.e?portLabel(x.e,o.port):o.port,type:x.e?typeName(x.e.type):""};
+}
+function traceRows(t){                             // una fila por boca, con el cable que sale hacia la siguiente
+  return t.hops.map((o,i)=>{const h=hopInfo(o),l=t.links[i];
+    return [i+1,h.room,h.rack,h.name,h.label,l?T(l.rear?"Detrás":"Delante"):"",l?(CABLES[l.cable]||CABLES.otro).n:"",l?l.label||"":"",l?(l.note||"").replace(/\r?\n/g," "):""];});
+}
+function showTrace(rid,el,port){
+  const t=trace(rid,el,port),varias=t.hops.some(o=>o.room!==rid);
+  let h=`<ol class="trace">`;
+  t.hops.forEach((o,i)=>{
+    const x=hopInfo(o),l=t.links[i],cb=l?CABLES[l.cable]||CABLES.otro:null;
+    h+=`<li><button class="hop" data-go="${i}"><b>${esc(x.name)}</b> <span class="chip">${esc(x.port)}</span>
+      <span class="hint">${varias?esc(x.room)+" › ":""}${esc(x.rack)}${x.type?" · "+esc(x.type):""}</span></button>`;
+    if(l)h+=`<div class="via"><span class="side">${l.rear?"Detrás":"Delante"}</span> <span class="chip"><i style="background:${cb.c}"></i>${cb.n}</span>${l.label?` <span class="chip">🏷 ${esc(l.label)}</span>`:""}${l.note?` <span class="hint">${esc(l.note)}</span>`:""}</div>`;
+    h+="</li>";
+  });
+  h+="</ol>";
+  t.warn.forEach(w=>{const x=hopInfo(w.o);
+    h+=`<div class="hint">⚠ <span>${w.loop?"El recorrido vuelve a una boca ya vista":(w.rear?"Varios cables detrás; se sigue el primero":"Varios cables delante; se sigue el primero")}</span>: ${esc(x.name)} · ${esc(x.port)}</div>`;});
+  if(t.hops.length<2)h+=`<div class="hint">Esta boca no tiene cables.</div>`;
+  modal.innerHTML=`<h3>Recorrido</h3><div class="body">${h}</div>
+  <div class="foot"><button class="btn" id="tr_copy">Copiar texto</button><button class="btn" id="tr_csv">Exportar CSV</button>
+  <span style="flex:1"></span><button class="btn acc" id="tr_close">Cerrar</button></div>`;
+  veil.classList.add("on");
+  const rows=traceRows(t);
+  $("#tr_close").onclick=closeModal;
+  $("#tr_copy").onclick=()=>{
+    const txt=rows.map(r=>r[0]+". "+[r[1],r[2],r[3],r[4]].filter(Boolean).join(" › ")+(r[5]?"\n   ↓ "+[r[5],r[6],r[7],r[8]].filter(Boolean).join(" · "):"")).join("\n");
+    navigator.clipboard.writeText(txt).then(()=>toast("Copiado al portapapeles"),()=>toast("No se ha podido copiar"));
+  };
+  $("#tr_csv").onclick=()=>{
+    const head=["Paso","Sala","Rack","Equipo","Boca","Cara","Tipo de cable","Etiqueta","Nota"];
+    const txt="﻿"+[head.map(T),...rows].map(r=>r.map(csvQ).join(";")).join("\r\n");
+    deliver(new Blob([txt],{type:"text/csv;charset=utf-8"}),"recorrido-"+stamp()+".csv","txt",txt);
+  };
+  modal.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>{
+    const o=t.hops[+b.dataset.go];closeModal();
+    if(o.room!==DB.current)useRoom(o.room);
+    const n=portNode(o.el,o.port);
+    if(n){n.scrollIntoView({block:"center",inline:"center",behavior:"smooth"});setTimeout(()=>showPop(o.el,o.port,n),320);}
+  });
+}
+// autocomprobación del recorrido: en la consola, testTrace() -> "ok"
+function testTrace(){
+  const keep=DB,E=(id,type)=>({id,name:id,type,ports:4}),
+    R=(id,els,links)=>({id,name:id,state:{racks:[{id:"r"+id,name:"R",elements:els}],links}});
+  try{
+    setDB(prepDB({rooms:[
+      R("s1",[E("sw","switch"),E("pa","panel"),E("pc","panel")],[
+        {id:"l7",a:{el:"pc",port:1},b:{el:"pc",port:2}},{id:"l8",a:{el:"pc",port:1},b:{el:"pc",port:2},rear:true},
+        {id:"l1",a:{el:"sw",port:1},b:{el:"pa",port:2}},
+        {id:"l3",a:{el:"pa",port:3},b:{el:"pa",port:4},rear:true},
+        {id:"l4",a:{el:"sw",port:3},b:{el:"pa",port:3}},
+        {id:"l5",a:{el:"sw",port:4},b:{el:"pa",port:4}},
+        {id:"l6",a:{el:"sw",port:3},b:{el:"pa",port:1}}]),
+      R("s2",[E("pb","panel")],[])],
+      xlinks:[{id:"l2",a:{room:"s1",el:"pa",port:2},b:{room:"s2",el:"pb",port:1},rear:true}]}));
+    const p=t=>t.hops.map(o=>o.el+o.port).join(">"),fail=[];
+    const ok=(c,m)=>{if(!c)fail.push(m);};
+    let t=trace("s2","pb",1);                    // roseta -> panel de otra sala -> panel -> switch
+    ok(p(t)==="pb1>pa2>sw1"&&!t.warn.length,"cadena entre salas: "+p(t));
+    t=trace("s1","sw",1);ok(p(t)==="pb1>pa2>sw1","mismo orden desde la electrónica: "+p(t));
+    t=trace("s1","pa",2);ok(p(t)==="pb1>pa2>sw1","desde un panel intermedio: "+p(t));
+    t=trace("s1","pc",1);ok(t.warn.some(w=>w.loop),"bucle: "+p(t));
+    t=trace("s1","sw",3);ok(t.warn.some(w=>w.n===2),"varios cables en la misma cara: "+p(t));
+    t=trace("s1","sw",2);ok(t.hops.length===1,"boca libre");
+    if(fail.length)throw new Error("testTrace: "+fail.join(" | "));
+    return "ok";
+  }finally{setDB(keep);}
+}
+
 /* ---------- exportar ---------- */
 function dl(blob,name){
   try{
@@ -2636,6 +2752,7 @@ function deliver(blob,name,kind,text){
   if(cp)cp.onclick=()=>{const t=$("#sv_txt");t.select();
     try{document.execCommand("copy");toast("Copiado al portapapeles");}catch(err){toast("Selecciona el texto y copia con Ctrl+C");}};
 }
+const csvQ=v=>{let t=String(v);if(/^[=+\-@\t\r]/.test(t))t="'"+t;return '"'+t.replace(/"/g,'""')+'"';};   // evita formulas al abrirlo en Excel
 const stamp=()=>new Date().toISOString().slice(0,10);
 const slug=t=>String(t||"sala").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")||"sala";
 // una fila por cable: origen y destino con su sala (los cables entre salas salen una sola vez)
@@ -2657,8 +2774,7 @@ function rows(flt){                                   // flt: aplicar el filtro 
 }
 function expCSV(){
   const head=["Sala origen","Rack origen","Equipo origen","Boca origen","Sala destino","Rack destino","Equipo destino","Boca destino","Tipo de cable","Etiqueta","Nota"];
-  const q=v=>{let t=String(v);if(/^[=+\-@\t\r]/.test(t))t="'"+t;return '"'+t.replace(/"/g,'""')+'"';};   // evita formulas al abrirlo en Excel
-  const txt="﻿"+[head.map(T),...rows()].map(r=>r.map(q).join(";")).join("\r\n");
+  const txt="﻿"+[head.map(T),...rows()].map(r=>r.map(csvQ).join(";")).join("\r\n");
   deliver(new Blob([txt],{type:"text/csv;charset=utf-8"}),"cableado-"+scopeName()+"-"+stamp()+".csv","txt",txt);
 }
 function expJSON(){
