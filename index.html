@@ -599,6 +599,9 @@ const I18N=(()=>{
 "Tipos de cable": "Cable types",
 "Nota": "Note",
 "Nota / comentario": "Note / comment",
+"Cable trasero": "Rear cable",
+"Instalación fija por detrás del patch panel: hacia otro panel o hacia la roseta. Se dibuja en discontinua.": "Fixed cabling behind the patch panel: to another panel or to the wall outlet. Drawn dashed.",
+"Esa boca ya tiene un cable trasero": "That port already has a rear cable",
 "Recorrido": "Route",
 "Recorrido, VLAN, fecha, incidencias…": "Route, VLAN, date, incidents…",
 "p. ej. UPLINK-CORE-A / TOMA 214": "e.g. UPLINK-CORE-A / OUTLET 214",
@@ -1073,7 +1076,10 @@ function prepDB(d){
     return e&&port&&port<=e.ports?{room:r.id,el:e.id,port}:null;
   };
   const xlinks=objs(d.xlinks).map(l=>{const a=fin(l.a),b=fin(l.b);
-    return a&&b&&a.room!==b.room?{id:safeId(l.id,"l"),a,b,cable:has(CABLES,l.cable)?l.cable:"otro",label:str(l.label),note:str(l.note)}:null;}).filter(Boolean);
+    if(!a||!b||a.room===b.room)return null;
+    const o={id:safeId(l.id,"l"),a,b,cable:has(CABLES,l.cable)?l.cable:"otro",label:str(l.label),note:str(l.note)};
+    if(l.rear===true)o.rear=true;
+    return o;}).filter(Boolean);
   return {v:3,current:rooms.some(r=>r.id===d.current)?d.current:rooms[0].id,
     theme:d.theme==="light"?"light":"dark",cableMode:pick(d.cableMode,["none","sel","all"],"sel"),
     expScope:d.expScope==="all"?"all":"room",expCab:pick(d.expCab,["all","none","rack","xroom","fibra","cobre"],"all"),rooms,types,xlinks};
@@ -1155,6 +1161,7 @@ function migrate(d,xt){
     const a=end(l.a),b=end(l.b);
     if(!a||!b||!a.port||!b.port||a.port>nports[a.el]||b.port>nports[b.el])return false;
     l.id=safeId(l.id,"l");l.a=a;l.b=b;l.cable=has(CABLES,l.cable)?l.cable:"otro";l.label=str(l.label);l.note=str(l.note);
+    if(l.rear!==true)delete l.rear;                // cable trasero (instalación fija detrás del panel)
     return true;
   });
   return d;
@@ -1369,6 +1376,12 @@ function linksOf(elId,port){
   const cur=DB.current,at=x=>x.el===elId&&x.port===port;
   return S.links.filter(l=>at(l.a)||at(l.b))
     .concat(DB.xlinks.filter(l=>(l.a.room===cur&&at(l.a))||(l.b.room===cur&&at(l.b))));
+}
+// cables de una boca de cualquier sala (linksOf solo mira la sala abierta)
+function linksAt(rid,el,port){
+  const r=DB.rooms.find(x=>x.id===rid),at=x=>x.el===el&&x.port===port;
+  return (r?r.state.links.filter(l=>at(l.a)||at(l.b)):[])
+    .concat(DB.xlinks.filter(l=>(l.a.room===rid&&at(l.a))||(l.b.room===rid&&at(l.b))));
 }
 function other(l,elId,port){
   if(isX(l))return (l.a.room===DB.current&&l.a.el===elId&&l.a.port===port)?l.b:l.a;
@@ -1888,6 +1901,7 @@ function editLink(id,isNew){
     <div class="fld"><label>Tipo de cable</label><select id="f_cable">${Object.entries(CABLES).map(([k,v])=>`<option value="${k}" ${l.cable===k?"selected":""}>${v.n}</option>`).join("")}</select></div>
     <div class="fld"><label>Etiqueta corta</label><input id="f_label" value="${esc(l.label)}" placeholder="p. ej. UPLINK-CORE-A / TOMA 214"></div>
     <div class="fld"><label>Nota / comentario</label><textarea id="f_note" placeholder="Recorrido, VLAN, fecha, incidencias…">${esc(l.note)}</textarea></div>
+    <div class="fld"><label><input type="checkbox" id="f_rear"${l.rear?" checked":""}> Cable trasero</label><div class="hint">Instalación fija por detrás del patch panel: hacia otro panel o hacia la roseta. Se dibuja en discontinua.</div></div>
   </div>
   <div class="foot">
     <button class="btn danger" id="m_del">Eliminar</button>
@@ -1900,7 +1914,10 @@ function editLink(id,isNew){
   $("#m_cancel").onclick=()=>{if(isNew){dropLink(id);save();render();}closeModal();};
   $("#m_del").onclick=()=>{dropLink(id);save();render();closeModal();toast("Cable eliminado");};
   $("#m_ok").onclick=()=>{
+    const rear=$("#f_rear").checked;
+    if(rear&&[l.a,l.b].some(o=>linksAt(o.room||DB.current,o.el,o.port).some(x=>x.rear&&x!==l))){toast("Esa boca ya tiene un cable trasero");return;}
     l.cable=$("#f_cable").value;l.label=$("#f_label").value.trim();l.note=$("#f_note").value.trim();
+    if(rear)l.rear=true;else delete l.rear;
     save();render();closeModal();toast("Conexión guardada");
   };
   modal.addEventListener("keydown",ev=>{if(ev.key==="Enter"&&ev.target.tagName!=="TEXTAREA")$("#m_ok").click();});
