@@ -625,6 +625,7 @@ const I18N=(()=>{
 "Nota": "Note",
 "Nota / comentario": "Note / comment",
 "Cable trasero": "Rear cable",
+"Cable trasero (discontinuo)": "Rear cable (dashed)",
 "Instalación fija por detrás del patch panel: hacia otro panel o hacia la roseta. Se dibuja en discontinua.": "Fixed cabling behind the patch panel: to another panel or to the wall outlet. Drawn dashed.",
 "Esa boca ya tiene un cable trasero": "That port already has a rear cable",
 "Recorrido": "Route",
@@ -2762,7 +2763,7 @@ function rows(flt){                                   // flt: aplicar el filtro 
     if(flt&&!cabOK(l,ra===rb?A.rk:null,ra===rb?B.rk:null))return;
     out.push([ra.name,A.rk?A.rk.name:"",A.e?A.e.name:"",A.e?portLabel(A.e,a.port):a.port,
               rb.name,B.rk?B.rk.name:"",B.e?B.e.name:"",B.e?portLabel(B.e,b.port):b.port,
-              (CABLES[l.cable]||CABLES.otro).n,l.label||"",(l.note||"").replace(/\r?\n/g," ")]);};
+              T(l.rear?"Detrás":"Delante"),(CABLES[l.cable]||CABLES.otro).n,l.label||"",(l.note||"").replace(/\r?\n/g," ")]);};
   salas.forEach(r=>r.state.links.forEach(l=>fila(r,l.a,r,l.b,l)));
   DB.xlinks.forEach(l=>{
     if(!ids.includes(l.a.room)&&!ids.includes(l.b.room))return;
@@ -2773,7 +2774,7 @@ function rows(flt){                                   // flt: aplicar el filtro 
   return out.sort((x,y)=>k(x).localeCompare(k(y))||String(x[3]).localeCompare(String(y[3]),undefined,{numeric:true}));
 }
 function expCSV(){
-  const head=["Sala origen","Rack origen","Equipo origen","Boca origen","Sala destino","Rack destino","Equipo destino","Boca destino","Tipo de cable","Etiqueta","Nota"];
+  const head=["Sala origen","Rack origen","Equipo origen","Boca origen","Sala destino","Rack destino","Equipo destino","Boca destino","Cara","Tipo de cable","Etiqueta","Nota"];
   const txt="﻿"+[head.map(T),...rows()].map(r=>r.map(csvQ).join(";")).join("\r\n");
   deliver(new Blob([txt],{type:"text/csv;charset=utf-8"}),"cableado-"+scopeName()+"-"+stamp()+".csv","txt",txt);
 }
@@ -2844,7 +2845,7 @@ function snapshotSVG(){
     if(!cabHere(l))continue;
     const d=pathOf(l,base);if(!d)continue;
     const c=(CABLES[l.cable]||CABLES.otro).c;
-    cab+=`<path d="${d}" fill="none" stroke="${c}" stroke-width="2" opacity="0.85" stroke-linecap="round"/>`;
+    cab+=`<path d="${d}" fill="none" stroke="${c}" stroke-width="2" opacity="0.85" stroke-linecap="round"${l.rear?' stroke-dasharray="7 5"':""}/>`;
   }
   let leg='';const ly0=H-legRows*20+6;
   if(cabSel()!=="none")Object.values(CABLES).forEach((c,i)=>{
@@ -2967,7 +2968,7 @@ function expPDF(){
       <img src="${general}"></div>
       ${paginas.map(p=>`<div class="plano rk"><h2>${esc(p.t)}</h2><img src="${p.url}"></div>`).join("")}
       ${cabSel()==="none"?"":`<h2>Conexiones (${filas.length})${fl?" — "+esc(CABF[cabSel()]):""}</h2>
-      <table><tr><th>Sala</th><th>Rack</th><th>Equipo</th><th>Boca</th><th>Sala</th><th>Rack</th><th>Equipo</th><th>Boca</th><th>Cable</th><th>Etiqueta</th><th>Nota</th></tr>
+      <table><tr><th>Sala</th><th>Rack</th><th>Equipo</th><th>Boca</th><th>Sala</th><th>Rack</th><th>Equipo</th><th>Boca</th><th>Cara</th><th>Cable</th><th>Etiqueta</th><th>Nota</th></tr>
       ${filas.map(r=>"<tr>"+r.map(c=>`<td>${esc(c)}</td>`).join("")+"</tr>").join("")}</table>`}
       ${inv}`;
     setTimeout(()=>{window.print();toast("Elige \"Guardar como PDF\" en el diálogo");},500);
@@ -3086,7 +3087,8 @@ $("#reset").onclick=()=>{
 };
 
 const lg=$("#legend");
-lg.innerHTML='<b style="cursor:pointer">Tipos de cable ▾</b><div class="lgb">'+Object.values(CABLES).map(c=>`<div><i style="background:${c.c}"></i>${c.n}</div>`).join("")+'</div>';
+lg.innerHTML='<b style="cursor:pointer">Tipos de cable ▾</b><div class="lgb">'+Object.values(CABLES).map(c=>`<div><i style="background:${c.c}"></i>${c.n}</div>`).join("")
+  +'<div><i style="background:repeating-linear-gradient(90deg,var(--tx2) 0 6px,transparent 6px 10px)"></i>Cable trasero (discontinuo)</div></div>';
 lg.querySelector("b").onclick=()=>{const b=lg.querySelector(".lgb");const off=b.style.display==="none";b.style.display=off?"":"none";lg.querySelector("b").textContent="Tipos de cable "+(off?"▾":"▸");};
 function layout(){
   const t=$("#top").offsetHeight;
