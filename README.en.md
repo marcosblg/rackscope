@@ -20,7 +20,7 @@ And a fourth one, **[CertScope](https://github.com/marcosblg/certscope)**, for T
 
 🌐 **In English and Spanish**: it opens in your browser's language and the **EN / ES** button switches it.
 
-> 🆕 **v2.5** (November 27, 2026): rear cables on patch panels and an **end-to-end path**, from the wall outlet to the network gear. On top of v2.4: now in English too. From v2.3: a custom label for every port, a background colour per device, and choosing the starting U when you add one. Following v2.2: deleting a device no longer shifts the rack, undo with Ctrl+Z, and exports that do not reveal the whole cabling. [See all the changes](CHANGELOG.md)
+> 🆕 **v2.6** (November 27, 2026): switches with only SFP ports (0 regular, up to 96 SFP). From v2.5: rear cables on patch panels and an **end-to-end path**, from the wall outlet to the network gear. On top of v2.4: now in English too. From v2.3: a custom label for every port, a background colour per device, and choosing the starting U when you add one. Following v2.2: deleting a device no longer shifts the rack, undo with Ctrl+Z, and exports that do not reveal the whole cabling. [See all the changes](CHANGELOG.md)
 
 Nothing to install or download: the link opens the tool with a sample room. Hit **▶ Ver demo** for the guided tour.
 
@@ -44,7 +44,7 @@ Nothing to install or download: the link opens the tool with a sample room. Hit 
 **Draw the rack as it actually is**
 - Every device with its real port count, as a strip, a grid, or placed **by hand** wherever you want.
 - Horizontal numbering (1…24) or vertical (1-2 / 3-4, like real switches), with gaps between blocks and an odd-bottom / even-top option.
-- **Separate SFP ports** with their own numbering (S1, S2…), to the right or left of the regular block.
+- **Separate SFP ports** with their own numbering (S1, S2…), to the right or left of the regular block. SFP-only switches too: 0 regular ports and up to 96 SFP.
 - **Custom device types** (router, PBX, KVM…) with their own name and color.
 - Variable width and height: 1U bars, 2U servers, square arrays, several boxes side by side in one row.
 - Tools to line ports up: multi-select with Ctrl/Shift, marquee selection, group drag, align, distribute, pack, sort by number and arrow-key nudging. Whatever does not fit in one row wraps to the next one, without stacking ports.

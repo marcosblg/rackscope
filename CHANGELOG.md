@@ -2,6 +2,10 @@
 
 # Novedades de RackScope
 
+## v2.6 — 27 de noviembre de 2026
+
+- **Switches solo SFP** ([#14](https://github.com/marcosblg/rackscope/issues/14)): un equipo puede tener 0 bocas normales y hasta 96 SFP; antes había un máximo de 16 SFP y al menos una boca normal. Pon *0* en *Número de bocas* y las SFP que tenga. Compatibilidad: una versión anterior abre ese equipo con 16 SFP y el resto como bocas normales.
+
 ## v2.5 — 27 de noviembre de 2026
 
 - **Cable trasero**: además del latiguillo de delante, una boca de patch panel puede tener su cable fijo de detrás, hacia otro patch panel (del mismo rack, de otro o de otra sala). Se crea con *Por detrás…* en la ficha de la boca, o marcando *Cable trasero* al editar un cable ya hecho. Se dibuja en discontinua y la boca lleva una marca en la esquina. La roseta sigue siendo la etiqueta de la boca.
@@ -77,6 +81,10 @@ Primera versión pública.
 ---
 
 # What's new in RackScope
+
+## v2.6 — November 27, 2026
+
+- **SFP-only switches** ([#14](https://github.com/marcosblg/rackscope/issues/14)): a device can have 0 regular ports and up to 96 SFP; before, 16 SFP at most and at least one regular port. Set *Número de bocas* to *0* and enter its SFP count. Compatibility: an older version opens such a device with 16 SFP and the rest as regular ports.
 
 ## v2.5 — November 27, 2026
 

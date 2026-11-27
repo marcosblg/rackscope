@@ -20,7 +20,7 @@ Y una cuarta, **[CertScope](https://github.com/marcosblg/certscope)**, para los 
 
 🌐 **En español y en inglés**: sale en el idioma de tu navegador y se cambia con el botón **EN / ES**.
 
-> 🆕 **v2.5** (27 de noviembre de 2026): cable trasero en los patch panels y **recorrido de extremo a extremo**, de la roseta a la electrónica. Viene de la v2.4: ahora también en inglés. De la v2.3: etiqueta propia para cada boca, color de fondo por equipo y elegir en qué U empieza un equipo al añadirlo. Viene de la v2.2: borrar sin descolocar el rack, deshacer con Ctrl+Z y exportaciones sin enseñar todo el cableado. [Ver todas las novedades](CHANGELOG.md)
+> 🆕 **v2.6** (27 de noviembre de 2026): switches con todas las bocas SFP (0 normales y hasta 96 SFP). De la v2.5: cable trasero en los patch panels y **recorrido de extremo a extremo**, de la roseta a la electrónica. Viene de la v2.4: ahora también en inglés. De la v2.3: etiqueta propia para cada boca, color de fondo por equipo y elegir en qué U empieza un equipo al añadirlo. Viene de la v2.2: borrar sin descolocar el rack, deshacer con Ctrl+Z y exportaciones sin enseñar todo el cableado. [Ver todas las novedades](CHANGELOG.md)
 
 No hay que instalar ni descargar nada: el enlace abre la herramienta con una sala de ejemplo. Pulsa **▶ Ver demo** para la visita guiada.
 
@@ -44,7 +44,7 @@ No hay que instalar ni descargar nada: el enlace abre la herramienta con una sal
 **Dibujar el rack como es en realidad**
 - Cada equipo con su número real de bocas, en tira, en rejilla o colocadas **a mano** donde te dé la gana.
 - Numeración horizontal (1…24) o vertical (1-2 / 3-4, como los switches reales), con separación por bloques y opción de impares abajo y pares arriba.
-- **Bocas SFP aparte** con su propia numeración (S1, S2…), a la derecha o a la izquierda del bloque normal.
+- **Bocas SFP aparte** con su propia numeración (S1, S2…), a la derecha o a la izquierda del bloque normal. También switches solo SFP: 0 bocas normales y hasta 96 SFP.
 - **Tipos de equipo propios** (router, centralita, KVM…) con su nombre y su color.
 - Cajas de ancho y alto variable: barras de 1U, servidores de 2U, cabinas cuadradas, varias cajas en la misma fila, cada una con su **color de fondo** si quieres.
 - Al añadir un equipo eliges **en qué U empieza**: el espacio que quede por encima pasa a ser hueco libre, y si cae dentro de un hueco reservado, el hueco se parte.

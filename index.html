@@ -612,6 +612,7 @@ const I18N=(()=>{
 "Cable trasero: una boca de patch panel puede tener, además del latiguillo de delante, su cable fijo de detrás hacia otro patch panel. Botón «Por detrás…» en la ficha de la boca. Se dibuja en discontinua.": "Rear cable: a patch panel port can now have, besides the front patch cord, its fixed rear cable to another patch panel. «Rear…» button in the port card. Drawn dashed.",
 "Recorrido: en la ficha de cualquier boca, la lista de tramos desde la roseta hasta el puerto de la electrónica, con cada patch panel por el que pasa. Se copia o se exporta a CSV.": "Path: in any port card, the list of hops from the wall outlet to the network gear port, with every patch panel on the way. Copy it or export it to CSV.",
 "27 de noviembre de 2026": "November 27, 2026",
+"Switches solo SFP: un equipo puede tener 0 bocas normales y hasta 96 SFP (antes, como mucho 16 SFP y al menos una boca normal).": "SFP-only switches: a device can have 0 regular ports and up to 96 SFP (before, 16 SFP at most and at least one regular port).",
 ": de la roseta a la electrónica, pasando por cada patch panel": ": from the wall outlet to the network gear, through every patch panel",
 "Roseta 205": "Outlet 205",
 "Puesto recepción planta 1": "Reception desk, floor 1",
@@ -876,6 +877,7 @@ const I18N=(()=>{
 "flechas = ajuste fino": "arrows = fine adjustment",
 "clic derecho elimina una boca": "right-click deletes a port",
 "Bocas SFP aparte (0 = ninguna)": "Separate SFP ports (0 = none)",
+"Número de bocas (0 si todas son SFP)": "Number of ports (0 if all are SFP)",
 "libre": "free",
 "La": "The",
 "Si no caben en una fila se pasan a la siguiente; con «por columnas» quedan de dos en dos, como en un switch.": "If they don't fit in a row they move to the next; with «by columns» they end up in pairs, like a switch.",
@@ -1184,7 +1186,7 @@ function migrate(d,xt){
       e.span=pick(+e.span,[3,4,5,6,8,12],12);e.pmode=pick(e.pmode,["grid","free"],"grid");
       e.palign=pick(e.palign,["left","center","right"],"left");e.flow=pick(e.flow,["row","col"],"row");
       e.group=int(e.group,0,24,0);
-      e.sfp=int(e.sfp,0,Math.min(16,e.ports-1),0);e.sfpSide=e.sfpSide==="left"?"left":"right";e.inv=!!e.inv;
+      e.sfp=int(e.sfp,0,Math.min(96,e.ports),0);e.sfpSide=e.sfpSide==="left"?"left":"right";e.inv=!!e.inv;
       if(Array.isArray(e.pos)){
         e.pos=e.pos.map(q=>({x:Math.max(0,Math.min(100,+(q&&q.x)||50)),y:Math.max(0,Math.min(100,+(q&&q.y)||50))}));
         if(e.pos.length<e.ports){const ex=defaultPos(e);while(e.pos.length<e.ports)e.pos.push(ex[e.pos.length]);}
@@ -1474,7 +1476,7 @@ function portSeq(e){
     }else ps.forEach((p,i)=>out.push({p,c:i%ncol,sg:second&&i===0}));
   };
   if(e.sfpSide==="left"&&m<e.ports){grp(m+1,e.ports,false);grp(1,m,true);}
-  else{grp(1,m,false);if(m<e.ports)grp(m+1,e.ports,true);}
+  else{grp(1,m,false);if(m<e.ports)grp(m+1,e.ports,m>0);}
   return out;
 }
 function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
@@ -2017,14 +2019,14 @@ function editElement(rack,e){
       <div class="fld"><label>Tipo</label><select id="e_type">${Object.entries(TYPES).map(([k,v])=>`<option value="${k}" ${e.type===k?"selected":""}>${v}</option>`).join("")}
         ${DB.types.length?`<optgroup label="Tus tipos">${DB.types.map(t=>`<option value="${t.id}" ${e.type===t.id?"selected":""}>${esc(t.name)}</option>`).join("")}</optgroup>`:""}
         <option value="__new">＋ Nuevo tipo…</option></select></div>
-      <div class="fld"><label>Número de bocas</label><input id="e_ports" type="number" min="1" max="96" value="${e.ports-(e.sfp||0)}"></div>
+      <div class="fld"><label>Número de bocas (0 si todas son SFP)</label><input id="e_ports" type="number" min="0" max="96" value="${e.ports-(e.sfp||0)}"></div>
     </div>
     <div class="grid2" id="w_newtype" style="display:none">
       <div class="fld"><label>Nombre del tipo nuevo</label><input id="nt_name" placeholder="Router, Centralita, KVM…"></div>
       <div class="fld"><label>Color</label><input id="nt_col" type="color" value="#ff9f5c" style="height:40px;padding:3px"></div>
     </div>
     <div class="grid2">
-      <div class="fld"><label>Bocas SFP aparte (0 = ninguna)</label><input id="e_sfp" type="number" min="0" max="16" value="${e.sfp||0}"></div>
+      <div class="fld"><label>Bocas SFP aparte (0 = ninguna)</label><input id="e_sfp" type="number" min="0" max="96" value="${e.sfp||0}"></div>
       <div class="fld"><label>Bloque SFP</label><select id="e_sfpside"><option value="right"${e.sfpSide!=="left"?" selected":""}>A la derecha</option><option value="left"${e.sfpSide==="left"?" selected":""}>A la izquierda</option></select></div>
     </div>
     <div class="grid2">
@@ -2097,7 +2099,7 @@ function editElement(rack,e){
     e.type=ty;
     e.rows=Math.max(1,Math.min(4,+$("#e_rows").value||1));
     const oldM=isNew?0:e.ports-(e.sfp||0),oldS=isNew?0:(e.sfp||0);
-    const newM=Math.max(1,Math.min(96,+$("#e_ports").value||1)),newS=Math.max(0,Math.min(16,+$("#e_sfp").value||0));
+    const newS=Math.max(0,Math.min(96,+$("#e_sfp").value||0)),newM=Math.max(newS?0:1,Math.min(96,+$("#e_ports").value||0));   // 0 normales vale si hay SFP
     if(!isNew&&(oldM!==newM||oldS!==newS)){
       // las SFP van detras de las bocas normales: si cambia cuantas hay, sus cables se mueven con ellas
       endsHere(x=>{if(x.el!==e.id)return;
@@ -3357,8 +3359,10 @@ addEventListener("beforeunload",ev=>{
 });
 
 /* ---------- versión y novedades ---------- */
-const VERSION="2.5";
+const VERSION="2.6";
 const NEWS=[
+ {v:"2.6",d:"27 de noviembre de 2026",items:[
+   "Switches solo SFP: un equipo puede tener 0 bocas normales y hasta 96 SFP (antes, como mucho 16 SFP y al menos una boca normal)."]},
  {v:"2.5",d:"27 de noviembre de 2026",items:[
    "Cable trasero: una boca de patch panel puede tener, además del latiguillo de delante, su cable fijo de detrás hacia otro patch panel. Botón «Por detrás…» en la ficha de la boca. Se dibuja en discontinua.",
    "Recorrido: en la ficha de cualquier boca, la lista de tramos desde la roseta hasta el puerto de la electrónica, con cada patch panel por el que pasa. Se copia o se exporta a CSV."]},
