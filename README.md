@@ -20,7 +20,7 @@ Y una cuarta, **[CertScope](https://github.com/marcosblg/certscope)**, para los 
 
 🌐 **En español y en inglés**: sale en el idioma de tu navegador y se cambia con el botón **EN / ES**.
 
-> 🆕 **v2.4** (16 de octubre de 2026): ahora también en inglés. Viene de la v2.3: etiqueta propia para cada boca, color de fondo por equipo y elegir en qué U empieza un equipo al añadirlo. Viene de la v2.2: borrar sin descolocar el rack, deshacer con Ctrl+Z y exportaciones sin enseñar todo el cableado. [Ver todas las novedades](CHANGELOG.md)
+> 🆕 **v2.5** (27 de noviembre de 2026): cable trasero en los patch panels y **recorrido de extremo a extremo**, de la roseta a la electrónica. Viene de la v2.4: ahora también en inglés. De la v2.3: etiqueta propia para cada boca, color de fondo por equipo y elegir en qué U empieza un equipo al añadirlo. Viene de la v2.2: borrar sin descolocar el rack, deshacer con Ctrl+Z y exportaciones sin enseñar todo el cableado. [Ver todas las novedades](CHANGELOG.md)
 
 No hay que instalar ni descargar nada: el enlace abre la herramienta con una sala de ejemplo. Pulsa **▶ Ver demo** para la visita guiada.
 
@@ -34,6 +34,7 @@ No hay que instalar ni descargar nada: el enlace abre la herramienta con una sal
 - Clic en una boca y clic en otra: queda el cable dibujado entre ambas.
 - Cada conexión lleva tipo de cable (Cat5e, Cat6, Cat6a/7, fibra multimodo, fibra monomodo, DAC/Twinax, eléctrico), etiqueta corta y una nota libre.
 - **Clic en cualquier boca y te dice al instante a dónde va**: equipo, número de boca exacto, rack, tipo de cable y la nota. Sin seguir el cable con la vista.
+- **Recorrido de extremo a extremo**: botón *Recorrido* en la ficha de la boca y sale la lista de tramos, de la roseta al puerto del switch, con cada patch panel por el que pasa. Para eso cada boca de patch panel puede tener su **cable trasero** (en discontinua) además del latiguillo de delante. Se copia o se exporta a CSV.
 - **Etiqueta propia para cada boca**: la boca del patch panel se llama igual que la roseta a la que llega. Sale en su ficha, en el buscador y en las exportaciones.
 - Al pasar el ratón por encima ya sale un aviso rápido con el destino.
 - La ventana de la boca se arrastra por su cabecera: al conectar se reduce y, si tapa la boca de destino, la apartas.

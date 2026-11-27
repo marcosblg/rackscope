@@ -20,7 +20,7 @@ And a fourth one, **[CertScope](https://github.com/marcosblg/certscope)**, for T
 
 🌐 **In English and Spanish**: it opens in your browser's language and the **EN / ES** button switches it.
 
-> 🆕 **v2.4** (October 16, 2026): now in English too. On top of v2.3: a custom label for every port, a background colour per device, and choosing the starting U when you add one. Following v2.2: deleting a device no longer shifts the rack, undo with Ctrl+Z, and exports that do not reveal the whole cabling. [See all the changes](CHANGELOG.md)
+> 🆕 **v2.5** (November 27, 2026): rear cables on patch panels and an **end-to-end path**, from the wall outlet to the network gear. On top of v2.4: now in English too. From v2.3: a custom label for every port, a background colour per device, and choosing the starting U when you add one. Following v2.2: deleting a device no longer shifts the rack, undo with Ctrl+Z, and exports that do not reveal the whole cabling. [See all the changes](CHANGELOG.md)
 
 Nothing to install or download: the link opens the tool with a sample room. Hit **▶ Ver demo** for the guided tour.
 
@@ -33,6 +33,7 @@ Nothing to install or download: the link opens the tool with a sample room. Hit 
 **Document the cabling**
 - Click one port, click another: the cable is drawn between them.
 - Every connection carries a cable type (Cat5e, Cat6, Cat6a/7, multimode fiber, single-mode fiber, DAC/Twinax, power), a short label and a free-form note.
+- **End-to-end path**: hit *Recorrido* (path) in the port card and you get the list of hops, from the wall outlet to the switch port, with each patch panel on the way. For that, every patch panel port can have its **rear cable** (dashed) besides the front patch cord. Copy it or export it to CSV.
 - **A custom label for every port**: the patch panel port carries the same name as the wall socket it reaches. It shows in the port card, in the search box and in the exports.
 - **Click any port and it tells you instantly where it goes**: device, exact port number, rack, cable type and your note. No tracing cables by eye.
 - Hovering already pops up a quick hint with the destination.

@@ -2,6 +2,13 @@
 
 # Novedades de RackScope
 
+## v2.5 — 27 de noviembre de 2026
+
+- **Cable trasero**: además del latiguillo de delante, una boca de patch panel puede tener su cable fijo de detrás, hacia otro patch panel (del mismo rack, de otro o de otra sala). Se crea con *Por detrás…* en la ficha de la boca, o marcando *Cable trasero* al editar un cable ya hecho. Se dibuja en discontinua y la boca lleva una marca en la esquina. La roseta sigue siendo la etiqueta de la boca.
+- **Recorrido de extremo a extremo**: botón *Recorrido* en la ficha de cualquier boca. Muestra la lista de tramos desde la roseta hasta el puerto de la electrónica, con cada patch panel por el que pasa, la cara (delante / detrás), el tipo de cable, la etiqueta y la nota. Se puede copiar como texto o exportar a CSV, y pulsando un tramo vas a esa boca. Avisa si encuentra un bucle o varios cables en la misma cara.
+- El CSV y la tabla del PDF llevan una columna *Cara*.
+- Compatibilidad: los archivos anteriores abren igual (todos sus cables son de delante). Si abres un archivo con cables traseros en una versión anterior, los cables traseros de una sala se ven como cables normales, y los traseros entre salas pierden la marca al guardar.
+
 ## v2.4 — 16 de octubre de 2026
 
 - **Inglés**: la aplicación sale en inglés si el navegador está en inglés, y con el botón EN / ES se cambia cuando quieras. Los datos que escribes no se tocan; los de ejemplo, sí.
@@ -70,6 +77,13 @@ Primera versión pública.
 ---
 
 # What's new in RackScope
+
+## v2.5 — November 27, 2026
+
+- **Rear cable**: besides the front patch cord, a patch panel port can now have its fixed rear cable, to another patch panel (in the same rack, another rack or another room). Create it with *Rear…* in the port card, or tick *Rear cable* when editing an existing cable. It is drawn dashed and the port gets a corner mark. The wall outlet is still the port label.
+- **End-to-end path**: *Path* button in any port card. It lists every hop from the wall outlet to the network gear port, with each patch panel on the way, the side (front / rear), cable type, label and note. Copy it as text or export it to CSV, and click a hop to go to that port. It warns about loops or several cables on the same side.
+- The CSV and the PDF table have a new *Side* column.
+- Compatibility: older files open as before (all their cables are front cables). If you open a file with rear cables in an older version, in-room rear cables show as normal cables and rear cables between rooms lose their mark when saved.
 
 ## v2.4 — October 16, 2026
 

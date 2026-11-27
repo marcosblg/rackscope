@@ -581,7 +581,6 @@ const I18N=(()=>{
 "Conectar esta boca…": "Connect this port…",
 "Conectando": "Connecting",
 "Conectando por detrás": "Connecting at the rear",
-"Recorrido": "Path",
 "Ver el camino completo desde esta boca: patch panels, salas y electrónica": "See the whole path from this port: patch panels, rooms and network gear",
 "El recorrido vuelve a una boca ya vista": "The path returns to a port already visited",
 "Varios cables detrás; se sigue el primero": "Several rear cables; following the first one",
@@ -609,6 +608,15 @@ const I18N=(()=>{
 "Arrastra para mover la ventana": "Drag to move the window",
 "¿A dónde va este cable?": "Where does this cable go?",
 "Un clic en la boca": "One click on the port",
+"¿Y de dónde viene?": "And where does it come from?",
+"Cable trasero: una boca de patch panel puede tener, además del latiguillo de delante, su cable fijo de detrás hacia otro patch panel. Botón «Por detrás…» en la ficha de la boca. Se dibuja en discontinua.": "Rear cable: a patch panel port can now have, besides the front patch cord, its fixed rear cable to another patch panel. «Rear…» button in the port card. Drawn dashed.",
+"Recorrido: en la ficha de cualquier boca, la lista de tramos desde la roseta hasta el puerto de la electrónica, con cada patch panel por el que pasa. Se copia o se exporta a CSV.": "Path: in any port card, the list of hops from the wall outlet to the network gear port, with every patch panel on the way. Copy it or export it to CSV.",
+"27 de noviembre de 2026": "November 27, 2026",
+": de la roseta a la electrónica, pasando por cada patch panel": ": from the wall outlet to the network gear, through every patch panel",
+"Roseta 205": "Outlet 205",
+"Puesto recepción planta 1": "Reception desk, floor 1",
+"Cableado fijo entre racks por falso suelo": "Fixed cabling between racks under the raised floor",
+"TOMA 205": "OUTLET 205",
 "y te lo dice": "and it tells you",
 "Te da el equipo, la boca exacta, el rack, el tipo de cable y tu nota": "It gives you the device, the exact port, the rack, the cable type and your note",
 "Equipo": "Device",
@@ -1049,7 +1057,7 @@ function seed(){
     E("HUECO RESERVADO","previsto servidor nuevo","hueco",1,1,{u:3})
   ];
   const B=[
-    E("PATCH PANEL B1","tomas 201-224","panel",24,1,{group:6}),
+    E("PATCH PANEL B1","tomas 201-224","panel",24,1,{group:6,pn:{5:"Roseta 205"}}),
     E("SWITCH PLANTA 1","sw-p1-01 · 192.168.10.4 · 24p + 4 SFP","switch",28,2,{group:6}),
     E("SERVIDOR VIRTUALIZACIÓN","srv-vm-01 · 192.168.10.22","server",8,1,{u:2,palign:"right"}),
     E("GRABADOR CCTV","nvr-01 · 192.168.10.50","otro",1,1,{pmode:"free",pos:[{x:93,y:50}]}),
@@ -1070,7 +1078,9 @@ function seed(){
     L(A[7],1,A[2],20,"cat6a","NAS-BACKUP","Red de copias, VLAN 30"),
     L(B[0],4,B[1],4,"cat6","TOMA 204","Puesto administración"),
     L(B[2],1,B[1],9,"cat6","VM-HOST-NIC1",""),
-    L(B[3],1,B[1],24,"cat6","CCTV-NVR","PoE, cámara pasillo")
+    L(B[3],1,B[1],24,"cat6","CCTV-NVR","PoE, cámara pasillo"),
+    L(A[1],5,A[2],5,"cat6","TOMA 205","Puesto recepción planta 1"),
+    Object.assign(L(B[0],5,A[1],5,"cat6","PERM-B1-A2-05","Cableado fijo entre racks por falso suelo"),{rear:true})
   ];
   return I18N.data({zoom:1,theme:"dark",cableMode:"sel",racks:[
     {id:nid("r"),name:"RACK A — SALA TÉCNICA",u:42,elements:A},
@@ -3262,8 +3272,11 @@ const TOUR=[
   f:()=>{const e=S.racks[0].elements[2];const n=portNode(e.id,48);n.scrollIntoView({block:'center'});n.click();}},
  {t:"Te da el equipo, la boca exacta, el rack, el tipo de cable y tu nota",
   f:()=>{}},
+ {t:"¿Y de dónde viene? <b>Recorrido</b>: de la roseta a la electrónica, pasando por cada patch panel",
+  f:()=>{closePop();const e=S.racks[1]&&S.racks[1].elements[0],n=e&&portNode(e.id,5);if(!n)return;
+     n.scrollIntoView({block:'center'});n.click();$("#popTrace").click();}},
  {t:"Las bocas ocupadas se pintan del color del cable: ves lo libre de un vistazo",
-  f:()=>{closePop();setCableMode("all");}},
+  f:()=>{closeModal();closePop();setCableMode("all");}},
  {t:"Y los cables se ocultan cuando estorban, que en un rack real son decenas",
   f:()=>{setCableMode("sel");}},
  {t:"La <b>regla de U</b> dice qué ocupa cada equipo y cuánto te queda libre",
@@ -3304,7 +3317,7 @@ function tourPlay(){
 function tourStop(){
   clearTimeout(tourT);tourT=null;tourI=-1;
   $("#cap").classList.remove("on");$("#tour").classList.remove("on");
-  setMove(false);sel.clear();closePop();expMenu.classList.remove("on");render();
+  setMove(false);sel.clear();closeModal();closePop();expMenu.classList.remove("on");render();
 }
 $("#tour").onclick=()=>{tourT?tourStop():tourPlay();};
 $("#capX").onclick=tourStop;
@@ -3344,8 +3357,11 @@ addEventListener("beforeunload",ev=>{
 });
 
 /* ---------- versión y novedades ---------- */
-const VERSION="2.4";
+const VERSION="2.5";
 const NEWS=[
+ {v:"2.5",d:"27 de noviembre de 2026",items:[
+   "Cable trasero: una boca de patch panel puede tener, además del latiguillo de delante, su cable fijo de detrás hacia otro patch panel. Botón «Por detrás…» en la ficha de la boca. Se dibuja en discontinua.",
+   "Recorrido: en la ficha de cualquier boca, la lista de tramos desde la roseta hasta el puerto de la electrónica, con cada patch panel por el que pasa. Se copia o se exporta a CSV."]},
  {v:"2.4",d:"16 de octubre de 2026",items:[
    "Inglés: la aplicación sale en inglés si el navegador está en inglés, y con el botón EN / ES se cambia cuando quieras. Los datos que escribes no se tocan; los de ejemplo, sí."]},
  {v:"2.3",d:"15 de octubre de 2026",items:[
