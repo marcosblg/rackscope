@@ -161,6 +161,7 @@ body.mv #mvbar{display:flex}
 .port.sel{background:var(--acc)!important;border-color:#fff!important;color:#fff;box-shadow:0 0 0 4px #59a9ff66;z-index:5}
 .port.peer{border-color:var(--warn)!important;box-shadow:0 0 0 4px #ffb02066;z-index:5}
 .port.named{box-shadow:inset 0 -3px 0 var(--gold)}
+.port.rear{background-image:linear-gradient(45deg,var(--tx) 0 4px,transparent 4px)}
 .port.multi::after{content:"";position:absolute;top:-3px;right:-3px;width:7px;height:7px;border-radius:50%;background:var(--warn);border:1.5px solid var(--panel)}
 .ports.dense .port{width:17px;height:17px;font-size:0}
 body.mv .ports{outline:1px dashed var(--acc);outline-offset:3px;border-radius:6px;cursor:crosshair}
@@ -190,7 +191,7 @@ body.mv .port:active{cursor:grabbing}
 @keyframes pin{from{opacity:0;transform:translateY(-6px)}}
 #pop .ph{padding:10px 12px;background:var(--panel2);border-bottom:1px solid var(--line2);display:flex;align-items:center;gap:8px;cursor:move;user-select:none;touch-action:none}
 #pop .ph .grip{color:var(--tx3);font-size:12px;letter-spacing:-2px}
-#pop.mini .pb,#pop.mini #popLink{display:none}
+#pop.mini .pb,#pop.mini #popLink,#pop.mini #popRear{display:none}
 #pop .wait{display:none;font-size:11.5px;color:var(--tx2);align-self:center;flex:1}
 #pop.mini .wait{display:block}
 #pop .ph .t{font-size:13px;font-weight:700}
@@ -264,6 +265,7 @@ body.mv .port:active{cursor:grabbing}
 .ports.dense .pspc{width:17px;height:17px}
 .port.xr::before{content:"↗";position:absolute;left:-5px;top:-8px;font-size:10px;font-weight:800;color:var(--gold);text-shadow:0 0 2px var(--bg)}
 .conn .xroom{color:var(--gold);font-weight:700}
+#pop .side{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--tx3);margin:2px 0 5px}
 .el.t-custom{border-left:4px solid var(--tc,#ff9f5c)}
 label.chk{display:flex;gap:8px;align-items:center;font-size:12.5px;color:var(--tx2);cursor:pointer}
 .tlist{display:flex;flex-direction:column;gap:6px}
@@ -385,7 +387,7 @@ label.chk{display:flex;gap:8px;align-items:center;font-size:12.5px;color:var(--t
 <div id="pop">
   <div class="ph" title="Arrastra para mover la ventana"><span class="grip">⋮⋮</span><span class="t" id="popT"></span><span class="p" id="popP"></span><button class="x" id="popX">✕</button></div>
   <div class="pb" id="popB"></div>
-  <div class="pf"><button class="btn acc sm" id="popLink">Conectar esta boca…</button><span class="wait">Pulsa la boca de destino. Si esta ventana la tapa, arrástrala.</span><button class="btn sm" id="popCancel" style="display:none">Cancelar</button></div>
+  <div class="pf"><button class="btn acc sm" id="popLink">Conectar esta boca…</button><button class="btn sm" id="popRear" title="Cable fijo por detrás: hacia otro panel o hacia la roseta">Por detrás…</button><span class="wait">Pulsa la boca de destino. Si esta ventana la tapa, arrástrala.</span><button class="btn sm" id="popCancel" style="display:none">Cancelar</button></div>
 </div>
 
 <div id="veil"><div class="modal" id="modal"></div></div>
@@ -572,6 +574,12 @@ const I18N=(()=>{
 "— sin cable conectado.": "— no cable connected.",
 "Conectar esta boca…": "Connect this port…",
 "Conectando": "Connecting",
+"Conectando por detrás": "Connecting at the rear",
+"Delante": "Front",
+"Detrás": "Rear",
+"Por detrás…": "Rear…",
+"Cable fijo por detrás: hacia otro panel o hacia la roseta": "Fixed cable at the rear: to another panel or to the wall outlet",
+"con cable trasero": "with rear cable",
 "Pulsa la boca de destino. Si esta ventana la tapa, arrástrala.": "Click the destination port. If this window covers it, drag it away.",
 "Puede estar en otra sala: cámbiala en el desplegable.": "It can be in another room: change it in the drop-down.",
 "Conexión cancelada": "Connection cancelled",
@@ -1360,7 +1368,7 @@ function setPending(v){
   const b=$("#pendbar");if(!b)return;
   if(v){
     const i=endInfo(v),varias=DB.rooms.length>1;
-    $("#pendT").innerHTML=`Conectando <b>${esc(i.e?i.e.name:"?")} · ${esc(i.e?portName(i.e,v.port):"")}</b>${varias?" de la sala "+esc(i.room?i.room.name:""):""}: pulsa la boca de destino.${varias?" Puede estar en otra sala: cámbiala en el desplegable.":""}`;
+    $("#pendT").innerHTML=`Conectando${v.rear?" por detrás":""} <b>${esc(i.e?i.e.name:"?")} · ${esc(i.e?portName(i.e,v.port):"")}</b>${varias?" de la sala "+esc(i.room?i.room.name:""):""}: pulsa la boca de destino.${varias?" Puede estar en otra sala: cámbiala en el desplegable.":""}`;
   }
   b.classList.toggle("on",!!v);
 }
@@ -1624,10 +1632,12 @@ function elNode(e,i,r){
     if(sel.has(e.id+"|"+p))b.classList.add("msel");
     const ls=linksOf(e.id,p);
     if(ls.length){
+      const fr=ls.filter(l=>!l.rear);
       b.classList.add("used");
-      const c=(CABLES[ls[0].cable]||CABLES.otro).c;
-      b.style.background=c+"55";b.style.borderColor=c;
-      if(ls.length>1)b.classList.add("multi");
+      const c=(CABLES[(fr[0]||ls[0]).cable]||CABLES.otro).c;
+      b.style.backgroundColor=c+"55";b.style.borderColor=c;
+      if(fr.length>1)b.classList.add("multi");
+      if(fr.length<ls.length){b.classList.add("rear");b.title=(b.title?b.title+" — ":"")+T("con cable trasero");}
       if(ls.some(isX))b.classList.add("xr");
     }
     pc.appendChild(b);
@@ -1667,14 +1677,14 @@ function draw(){
   for(const l of visibleLinks()){
     const d=pathOf(l,base);if(!d)continue;
     const c=(CABLES[l.cable]||CABLES.otro).c;
-    out+=`<path d="${d}" stroke="${c}" stroke-width="2.4" opacity="0.9" data-link="${l.id}" style="color:${c}"><title>${esc(label(l))}</title></path>`;
+    out+=`<path d="${d}" stroke="${c}" stroke-width="2.4" opacity="0.9"${l.rear?' stroke-dasharray="7 5"':""} data-link="${l.id}" style="color:${c}"><title>${esc(label(l))}</title></path>`;
   }
   svg.innerHTML=out;
   highlight();
 }
 function label(l){
   const A=elById(l.a.el),B=elById(l.b.el);
-  return `${A?A.name:"?"} p${l.a.port}  ⇄  ${B?B.name:"?"} p${l.b.port}`+(l.label?`  [${l.label}]`:"")+`  · ${(CABLES[l.cable]||CABLES.otro).n}`;
+  return (l.rear?"Detrás · ":"")+`${A?A.name:"?"} p${l.a.port}  ⇄  ${B?B.name:"?"} p${l.b.port}`+(l.label?`  [${l.label}]`:"")+`  · ${(CABLES[l.cable]||CABLES.otro).n}`;
 }
 function highlight(){
   svg.classList.remove("faded");
@@ -1742,7 +1752,9 @@ function showPop(elId,port,node){
   if(!ls.length){
     h=`<div class="empty">Boca <b>libre</b> — sin cable conectado.<br><span class="hint">${esc(rk?rk.name:"")} · ${esc(e.sub||typeName(e.type))}</span></div>`;
   }else{
-    for(const l of ls){
+    const fr=ls.filter(l=>!l.rear),rr=ls.filter(l=>l.rear);
+    for(const l of fr.concat(rr)){
+      if(rr.length&&(l===fr[0]||l===rr[0]))h+=`<div class="side">${l.rear?"Detrás":"Delante"}</div>`;
       const o=other(l,elId,port), i=endInfo(o), oe=i.e, orr=i.rk, cb=CABLES[l.cable]||CABLES.otro;
       h+=`<div class="conn">
         <div class="to"><span class="arrow">➜</span> ${esc(oe?oe.name:"?")} <span class="chip">${esc(oe?portName(oe,o.port):"boca "+o.port)}</span></div>
@@ -1791,6 +1803,10 @@ racksEl.addEventListener("click",ev=>{
   if(pending){
     if(pending.room===DB.current&&pending.el===elId&&pending.port===port){setPending(null);toast("Conexión cancelada");closePop();return;}
     const id=nid("l"),base={id,cable:"cat6",label:"",note:""};
+    if(pending.rear){
+      if(linksOf(elId,port).some(l=>l.rear)){toast("Esa boca ya tiene un cable trasero");return;}
+      base.rear=true;
+    }
     if(pending.room===DB.current)S.links.push(Object.assign(base,{a:{el:pending.el,port:pending.port},b:{el:elId,port}}));
     else DB.xlinks.push(Object.assign(base,{a:{room:pending.room,el:pending.el,port:pending.port},b:{room:DB.current,el:elId,port}}));
     setPending(null);
@@ -1831,6 +1847,11 @@ $("#pendX").onclick=()=>{setPending(null);closePop();toast("Conexión cancelada"
 $("#popLink").onclick=()=>{
   if(!openPort)return;
   setPending({room:DB.current,...openPort});
+};
+$("#popRear").onclick=()=>{
+  if(!openPort)return;
+  if(linksOf(openPort.el,openPort.port).some(l=>l.rear)){toast("Esa boca ya tiene un cable trasero");return;}
+  setPending({room:DB.current,...openPort,rear:true});
 };
 $("#popB").addEventListener("click",ev=>{
   const b=ev.target.closest("button");if(!b)return;
